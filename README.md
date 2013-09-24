@@ -6,9 +6,10 @@ Simple database engine that runs.
 
 Assumptions
 ===========
-1. Each table will has different columnname with each other table. 
+1. Each table has different columnname with each other table. 
 2. Only varchar is supported.
-3. No renaming allow in FROM clause
+3. No renaming allow in FROM clause.
+4. INNER JOIN keyword must be used when there is a join between tables
 ```
 CREATE syntax
  CREATE TABLE <tablename> (
@@ -31,10 +32,7 @@ Initial Class
       addColumn(Name, EnumColumnType)
       setPrimaryKey(Name)
   3. Select 
-	  +
-      -addColumns(columnName)
-      -addTable(string tableName)
-      -addCondition(conditionList)
+	  ResultTable evaluateQuery(string query)
   4. Update
   5. Delete
   6. ResultTable 
@@ -42,3 +40,7 @@ Initial Class
       Merge(ResulTable, conditionList)
       getTotalRows()
       getItemValue(string columnName, int rowIndex)
+  7. QueryPlan
+	  void addProjection(string columnName)
+	  void addSelection(string tableName)
+	  void addCondition(conditionList)
