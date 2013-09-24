@@ -8,7 +8,7 @@ Assumptions
 ===========
 1. Each table will has different columnname with each other table. 
 2. Only varchar is supported.
-
+3. No renaming allow in FROM clause
 ```
 CREATE syntax
  CREATE TABLE <tablename> (
@@ -31,9 +31,10 @@ Initial Class
       addColumn(Name, EnumColumnType)
       setPrimaryKey(Name)
   3. Select 
-      addColumns(columnName)
-      addTable(string tableName)
-      addCondition(conditionList)
+	  +
+      -addColumns(columnName)
+      -addTable(string tableName)
+      -addCondition(conditionList)
   4. Update
   5. Delete
   6. ResultTable 
