@@ -1,0 +1,23 @@
+﻿Build started 10/6/2013 10:21:14 PM.
+Project "C:\Users\hendri\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" on node 2 (build target(s)).
+InitializeBuildStatus:
+  Creating "Debug\MicroQL.unsuccessfulbuild" because "AlwaysCreate" was specified.
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+  stdafx.cpp
+  C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt MicroQL.cpp Select.cpp
+  Select.cpp
+c:\users\hendri\documents\github\microql\microql\select.cpp(1): warning C4627: '#include "Select.h"': skipped when looking for precompiled header use
+          Add directive to 'StdAfx.h' or rebuild precompiled header
+c:\users\hendri\documents\github\microql\microql\select.cpp(2): warning C4627: '#include "QueryPlan.h"': skipped when looking for precompiled header use
+          Add directive to 'StdAfx.h' or rebuild precompiled header
+c:\users\hendri\documents\github\microql\microql\select.cpp(3): warning C4627: '#include <string>': skipped when looking for precompiled header use
+          Add directive to 'StdAfx.h' or rebuild precompiled header
+c:\users\hendri\documents\github\microql\microql\select.cpp(50): fatal error C1010: unexpected end of file while looking for precompiled header. Did you forget to add '#include "StdAfx.h"' to your source?
+  MicroQL.cpp
+  Generating Code...
+Done Building Project "C:\Users\hendri\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:02.06

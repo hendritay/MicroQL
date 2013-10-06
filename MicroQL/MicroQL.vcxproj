@@ -78,6 +78,9 @@
     <ClInclude Include="QueryPlan.h" />
     <ClInclude Include="Select.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StorageManager.h" />
+    <ClInclude Include="TableDictionary.h" />
+    <ClInclude Include="TableResult.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>

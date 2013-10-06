@@ -30,6 +30,15 @@
     <ClInclude Include="QueryPlan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StorageManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TableResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TableDictionary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
