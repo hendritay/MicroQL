@@ -1,9 +1,10 @@
+#include "stdafx.h"
 #include "Select.h"
 #include "QueryPlan.h"
 #include <string>
 
 Select :: Select(){ }
-
+/*
 Select :: ResultTable evaluateQuery(string query)
 {
 	// store query
@@ -47,3 +48,4 @@ Select :: QueryPlan generateQueryPlan()
 	// addSelection(tableName);
 	// addCondition(conditionList);
 }
+*/
