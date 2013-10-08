@@ -10,8 +10,9 @@ public:
 	string getTableName();
 	void addColumn(MQLColumn column);
 
+	void create();
 private:
 	string tableName;
 	vector<MQLColumn> columnList;
-
+	MQLColumn PrimaryKey;
 }
