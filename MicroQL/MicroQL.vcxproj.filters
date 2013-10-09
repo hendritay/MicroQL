@@ -24,19 +24,46 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Select.h">
+    <ClInclude Include="MainType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryPlan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StorageManager.h">
+    <ClInclude Include="Select.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TableResult.h">
+    <ClInclude Include="Database\DeleteDefinition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TableDictionary.h">
+    <ClInclude Include="Database\MQLColumn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\MQLCondition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\MQLTuple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\MQLTupleManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\TableDefinition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\TableDictionary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\TableResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\UpdateDefinition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Storage\FileManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Storage\StorageManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -45,6 +72,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MicroQL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Storage\FileManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QueryPlan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Select.cpp">

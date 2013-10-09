@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8C3F4795-655C-4DAE-BBCF-B3813F635061}</ProjectGuid>
+    <ProjectGuid>{4C3AEE59-1EE3-41C7-8396-A89C644012BF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MicroQL</RootNamespace>
   </PropertyGroup>
@@ -49,6 +49,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,21 +76,32 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Database\DeleteDefinition.h" />
+    <ClInclude Include="Database\MQLColumn.h" />
+    <ClInclude Include="Database\MQLCondition.h" />
+    <ClInclude Include="Database\MQLTuple.h" />
+    <ClInclude Include="Database\MQLTupleManager.h" />
+    <ClInclude Include="Database\TableDefinition.h" />
+    <ClInclude Include="Database\TableDictionary.h" />
+    <ClInclude Include="Database\TableResult.h" />
+    <ClInclude Include="Database\UpdateDefinition.h" />
+    <ClInclude Include="MainType.h" />
     <ClInclude Include="QueryPlan.h" />
     <ClInclude Include="Select.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StorageManager.h" />
-    <ClInclude Include="TableDictionary.h" />
-    <ClInclude Include="TableResult.h" />
+    <ClInclude Include="Storage\FileManager.h" />
+    <ClInclude Include="Storage\StorageManager.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MicroQL.cpp" />
+    <ClCompile Include="QueryPlan.cpp" />
     <ClCompile Include="Select.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Storage\FileManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
