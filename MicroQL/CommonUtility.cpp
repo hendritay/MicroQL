@@ -16,4 +16,5 @@ string CommonUtility::convertShortTo2Bytes(unsigned short number)
 		char back = value[1];
 
 		int result = back << 8 | front;
+		return result;
 	}
