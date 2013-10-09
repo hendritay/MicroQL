@@ -21,8 +21,8 @@ bool FileManager::createAFile(string path) {
 		myfile.seekp(remaining -end.size());
 		myfile.write(end.c_str(), end.size());
 		// precreate a storage manager page
-		myfile << "1";
-		myfile.seekp(PageSize *2 -1);
+		myfile << "11"; // storage manager page and table dicitonary page 
+		myfile.seekp(PageSize *2 -2);
 		myfile << " ";
 		
 	} else 

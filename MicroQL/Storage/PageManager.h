@@ -1,3 +1,5 @@
+#pragma once
+
 class PageManager {
 public:
 	static char STORAGEMANAGER;
