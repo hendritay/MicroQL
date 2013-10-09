@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include <string>
 using namespace std;
+
 class QueryPlan{
 	public:
 		QueryPlan :: QueryPlan();

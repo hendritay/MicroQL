@@ -8,11 +8,12 @@
 #include <vector>
 #include <string>
 #include "QueryPlan.h"
+#include "Database/TableResult.h"
 
 class Select{
 	public:
 		Select :: Select();
-		//ResultTable evaluateQuery(string query);
+		TableResult evaluateQuery(string query);
 	private:
 		vector<QueryPlan> queryPlans;
 		string query;
@@ -21,12 +22,19 @@ class Select{
 		//conditionList
 
 
-		QueryPlan generateQueryPlan();
-		bool parseSyntax();	
-		bool parseSchema();
-		/*void evaluateWhere(ResultTable * resultTable);	// either attr = "" OR attr = attr, call populate
-		void evaluateJoin(ResultTable * resultTable);	// inner join bet. 2 tables, call merge
-		void evaluateSelect(ResultTable * resultTable);	// can select from diff tables
-		*/
+		void generateQueryPlan();
+		
+		
+		//void evaluateWhere(TableResult * tb);	// either attr = "" OR attr = attr, call populate
+		//void evaluateJoin(TableResult * tb);	// inner join bet. 2 tables, call merge
+		//void evaluateSelect(TableResult * tb);	// can select from diff tables
+
+		bool parseSemantics();
+		bool parseSyntaxAndType(string query, vector<string> * tokensPtr, vector<int> * clausePosPtr);
+
+		// *** other additional functions ***
+		bool isAttributeOrRelationDotAttribute(string value);
+		vector<string> splitString(string toBeSplit, string delimiters);
+		void stringToUpper(string &s);
 };
 #endif
