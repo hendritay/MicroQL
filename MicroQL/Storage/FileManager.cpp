@@ -2,6 +2,7 @@
 #include "FileManager.h"
 #include <iostream>
 #include <fstream>
+#include "CommonUtility.h"
 
 string FileManager::FileHeader = "MicroQL 1.0";
 
@@ -22,8 +23,9 @@ bool FileManager::createAFile(string path) {
 		myfile.write(end.c_str(), end.size());
 		// precreate a storage manager page
 		myfile << "11"; // storage manager page and table dicitonary page 
-		myfile.seekp(PageSize *2 -2);
-		myfile << " ";
+		myfile.seekp(PageSize *2);
+		myfile << CommonUtility::convertShortTo2Bytes(0);
+		
 		
 	} else 
 		return false;

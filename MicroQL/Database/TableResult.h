@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "MQLColumn.h"
-#include "MQLCondition.h"
-#include "MQLTupleManager.h"
+#include "Database\MQLColumn.h"
+#include "Database\MQLCondition.h"
+#include "Database\MQLTupleManager.h"
 
 using namespace std;
 class TableResult {

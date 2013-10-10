@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <list>
-#include "MQLTuple.h";
-#include "MQLColumn.h"
+#include "Database\MQLTuple.h";
+#include "Database\MQLColumn.h"
 
 typedef vector<MQLTuple> TupleList;
 
@@ -12,4 +12,4 @@ public :
 private:
 	vector<MQLColumn> columnList;
 	TupleList tupleList;
-}
+};

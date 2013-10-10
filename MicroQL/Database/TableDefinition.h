@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "MQLColumn.h"
+#include "Database\MQLColumn.h"
 #include <vector>
 typedef vector<MQLColumn> ColumnList ;
 using namespace std;
@@ -10,11 +10,16 @@ public:
 	TableDefinition() {
 
 	}
+	TableDefinition(string tbName) {
+		tableName = tbName;
+	}
 	MQLColumn &getColumnAt(int i) {
 		return columnList.at(i);
 	}
 
-	string getTableName();
+	string getTableName() {
+		return tableName;
+	}
 	void addColumn(MQLColumn &column){
 		columnList.push_back(column);
 	}
@@ -28,12 +33,12 @@ public:
 	}
 	// page will be requested by TableDictionary under addTable
 	void setRecordPage(int initialRecordPage) {
-		recordPage = initialRecordPage;
+		startRecordPageNo = initialRecordPage;
 	}
 private:
 	string tableName;
 	ColumnList columnList;
 	MQLColumn PrimaryKey;
-	int recordPage; 
+	int startRecordPageNo; 
 
 };
