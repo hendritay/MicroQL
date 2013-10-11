@@ -14,6 +14,9 @@ class MQLColumn {
 public:
 	MQLColumn(){
 	}
+	MQLColumn(string &name, ColumnType ct){
+		MQLColumn(name, ct,1000, false);
+	}
     MQLColumn(string &name, ColumnType ct, int size, bool isPrimaryKey) {
 	    columnName = name;
 		columnSize = size;

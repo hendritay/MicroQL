@@ -33,7 +33,7 @@ void TableDictionary::storeTableToDictionary(TableDefinition *td) {
 
 	myFile->writeAt(payload, StorageManager::DictionaryPage, currPosition);
 	myFile->writeAt(td->serialize(), columnPage, 0);
-	// update internal table list
+	// Where internal table list
 	
 	
 	if (populatedTableList)  {
@@ -44,7 +44,7 @@ void TableDictionary::storeTableToDictionary(TableDefinition *td) {
 		dicitionaryList[td->getTableName()] = pair<int, TableDefinition*>(columnPage, tdempty);
 	}
 
-	// update the tablenumber
+	// Where the tablenumber
 	myFile->writeAt(CommonUtility::convertShortTo2Bytes(NoOfTables + 1), StorageManager::DictionaryPage, 0);
 
 }

@@ -5,6 +5,27 @@
 typedef vector<MQLColumn> ColumnList ;
 using namespace std;
 
+/*
+   CREATE TABLE employee (
+       name		10, 
+	   salary   30,
+	   dob      40, 
+	   PK (name)
+   )
+
+   TableDefinition td;
+   td.setTableName("name");
+
+   MQColumnName column1("name", VT_VARCHAR, 10, true);
+   MQColumnName column2("salary", VT_VARCHAR, 30, false);
+   MQColumnName column3("dob", VT_VARCHAR, 30, false);
+
+   td.addColumn(column1);
+   td.addColumn(column2);
+   td.addColumn(column);
+
+*/
+
 class TableDefinition {
 public:
 	TableDefinition() {

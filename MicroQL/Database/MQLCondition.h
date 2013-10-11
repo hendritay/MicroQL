@@ -1,5 +1,5 @@
 #pragma once
-#include "MQLColumn.h"
+#include "Database\MQLColumn.h"
 
 class MQLCondition {
 public:
