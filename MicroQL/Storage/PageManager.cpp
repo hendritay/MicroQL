@@ -7,3 +7,5 @@
 	char PageManager::TABLEPAGE = 0x0D; 
 	char PageManager::RECORDPAGE =0x06 ;
 	char PageManager::OVERFLOWPAGE =0x08;
+	char PageManager::NORMALROW= 'N'; 
+	char PageManager::OVERFLOWROW ='O';

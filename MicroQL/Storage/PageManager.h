@@ -8,4 +8,7 @@ public:
 	static char TABLEPAGE;
 	static char RECORDPAGE;
 	static char OVERFLOWPAGE;
+	static char NORMALROW;
+	static char OVERFLOWROW;
+
 };

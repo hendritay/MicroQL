@@ -1,14 +1,13 @@
-﻿Build started 10/10/2013 4:35:28 PM.
+﻿Build started 10/11/2013 11:42:08 AM.
      1>Project "C:\Study\CS4221\MicroQL\MicroQL\MicroQL.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\MicroQL.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Study\CS4221\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt MicroQL.cpp
-         MicroQL.cpp
-     1>c:\study\cs4221\microql\microql\microql.cpp(7): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(8): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Study\CS4221\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Storage\BTree.cpp
+         BTree.cpp
+     1>c:\study\cs4221\microql\microql\storage\btree.h(5): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\study\cs4221\microql\microql\storage\btree.h(7): warning C4067: unexpected tokens following preprocessor directive - expected a newline
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -20,6 +19,7 @@
          Debug\QueryPlan.obj
          Debug\Select.obj
          Debug\stdafx.obj
+         Debug\BTree.obj
          Debug\FileManager.obj
          Debug\PageManager.obj
          Debug\StorageManager.obj
@@ -36,4 +36,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.65
+Time Elapsed 00:00:01.31
