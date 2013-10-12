@@ -2,55 +2,195 @@
 #include "Select.h"
 #include "QueryPlan.h"
 #include "Database/TableResult.h"
+#include "Database/TableDictionary.h"
 
+#include <map>
 #include <string>
 Select :: Select(){ }
 
-TableResult Select :: evaluateQuery(string query) 
+bool Select :: evaluateQuery(string query) 
 {
 	// *** 1. normalization ***
 	// need to do what?
 
-	// *** 2. parse the query & generate query tree ***
+	// *** 2. parse the query & generate query plan ***
 	// split the query
 	vector<string> tokens = splitString(query, " ");
 	vector<string> * tokensPtr = &tokens;
-	vector<int> clausePos;
-	vector<int> * clausePosPtr = &clausePos;
-	// check for syntax and generate query tree
-	if(!parseSyntaxAndType(query, tokensPtr, clausePosPtr))
-		throw "Invalid Syntax or Type used";
+	TableResult * trPtr ;
+	TableResult tr;
+	//trPtr = &tr;
 
-	// check query tree for schema
+	// check for syntax and generate query plan
+	if(!parseSyntaxAndType(query, tokensPtr))
+		return false;
+		//throw "Invalid Syntax or Type used";
+
+	// check query plan for schema
 	if(!parseSemantics())
 		throw "Invalid Semantics";
 
 	// *** 3. remove redundancy ***
 	// need to use rules and check if it fulfils 1 rule, change it to the simplified version
+	removeRedundancy();
 
-
-	// *** 4. generate the query plan ***
-	generateQueryPlan();
+	// *** 4. generate the other query plans ***
+	//generateQueryPlan();
 
 
 	// *** evaluate the query ***
-	// create empty ResultTable and have a pointer point to it
-	TableResult tb; //new TableResult();
-	TableResult * tbPtr = &tb;
+	evaluateQueryPlan(trPtr);
 
-	// if there is where clause
-	//		evaluateWhere(resultTablePtr);
-	// if there is join clause
-	//		evaluateJoin(resultTablePtr);
-	// evaluateSelect(resultTablePtr);
 
 	// *** return a copy of the resultTable values ***
-	return tb;
+	return true;
+	//return *trPtr;
 
 }
+void Select :: removeRedundancy()
+{
+	// change thoery/concept to code
+	QueryPlan * qpPtr = &queryPlans.at(0);
+	// remove exact duplicated where conditions (a = b AND a = b
+	// remove duplicated where conditions (a = " " AND " " = a, a = b AND b = a)
+}
+
+void Select :: evaluateQueryPlan(TableResult *& tbPtr)
+{
+	map<string, TableResult> tableResults;
+	map<string, TableResult> * tableResultsPtr = &tableResults;
+	QueryPlan * qpPtr = &queryPlans.at(0);
+	evaluateWhere(tableResultsPtr,qpPtr);
+	evaluateJoin(tableResultsPtr,qpPtr);
+	evaluateSelect(tableResultsPtr, qpPtr);
+}
+void Select :: evaluateWhere(map<string, TableResult> * tableResultsPtr, QueryPlan * qpPtr)
+{	
+	
+	// evaluate "" = a / "" = a
+	for(vector<SelectCondition> :: iterator it = qpPtr->conditions.begin(), end = qpPtr->conditions.end(); it != end;)
+	{
+		if(it->isLeftStr || it->isRightStr)
+		{
+
+			
+			string tableName;
+
+			// TODO: find the tableName that leftValue/rightValue exist
+			if(it->isLeftStr)
+			{
+				//tableName
+			}
+			else
+			{
+				//tableName
+			}
+
+			// find whether exsiting tableResults exist
+			map<string, TableResult > :: iterator iter = tableResultsPtr->find(tableName);
+			if(iter != tableResultsPtr->end())
+			{
+				//iter->second.loadResult(tableName, *it);
+			}
+			else
+			{
+				TableResult tb();
+				//tableResultsPtr->insert(pair<string, TableResult>(tableName, tb));
+				//iter->second.loadResult(tableName, *it);
+			}
+			// erase
+			qpPtr->conditions.erase(it++);
 
 
+		}
+		else
+		{
+			++it;
+		}
+		
+	}	// end of for
 
+	// evaluate a = b
+	for(vector<SelectCondition> :: iterator it = qpPtr->conditions.begin(), end = qpPtr->conditions.end(); it != end;)
+	{
+		// TODO: find the tableName that leftValue,rightValue exist
+		string leftTableName, rightTableName;
+
+
+		map<string, TableResult > :: iterator iter = tableResultsPtr->find(leftTableName);
+		map<string, TableResult > :: iterator iter1 = tableResultsPtr->find(rightTableName);
+		if(iter != tableResultsPtr->end())
+		{
+			if(iter1 != tableResultsPtr->end())
+			{
+				// get entire col of iter & iter1
+				// loop through col of iter
+					// loop through col of iter1
+						// if both are equal
+							// save rowPtr/num of both
+			}
+			else
+			{
+				// create new tableResult, load data
+				TableResult tb();
+				//tableResultsPtr->insert(pair<string, TableResult>(rightTableName, tb));
+				//tb.second.loadResult(rightTableName);
+
+				// copy loop
+			}
+		}
+		else
+		{
+			// create new tableResult, load data
+			TableResult tb();
+			//tableResultsPtr->insert(pair<string, TableResult>(leftTableName, tb));
+			//tb.second.loadResult(leftTableName)
+
+			if(iter1 != tableResultsPtr->end())
+			{
+				// loop
+			}
+			else
+			{
+				// create new tableResult, load data
+				TableResult tb1();
+				//tableResultsPtr->insert(pair<string, TableResult>(rightTableName, tb1));
+				//tb1.second.loadResult(rightTableName)
+
+				// loop
+			}
+		}
+		
+
+	}
+}
+
+void Select :: evaluateJoin(map<string, TableResult> * tableResultsPtr, QueryPlan * qpPtr)
+{
+	// inner join bet. 2 tables, call merge
+	for(vector<SelectCondition> :: iterator it = qpPtr->joins.begin(), end = qpPtr->joins.end(); it != end;)
+	{
+		// TODO: find the tableName that leftValue,rightValue exist
+		string leftTableName, rightTableName;
+		// find exsiting tableResults 
+		map<string, TableResult > :: iterator iter = tableResultsPtr->find(leftTableName);
+		map<string, TableResult > :: iterator iter1 = tableResultsPtr->find(rightTableName);
+		if(iter != tableResultsPtr->end())
+		{
+			if(iter1 != tableResultsPtr->end())
+			{
+				//iter->second.loadResult(rightTableName, iter1->second);
+				//remove right tableResult
+				//tableResultsPtr->erase(iter1);
+			}
+		}
+	}
+}
+void Select :: evaluateSelect(map<string, TableResult> * tableResultsPtr, QueryPlan * qpPtr)
+{
+	// can select from diff tables
+	//tupleList = tableResultsPtr->at(0).getResult(ColumnList); // must return in the order of the column list
+}
 
 void Select :: generateQueryPlan()
 {
@@ -66,20 +206,130 @@ void Select :: generateQueryPlan()
 
 bool Select :: parseSemantics()
 {
-	// check whether relation/attribute doesnt exist, whether tree is disjoint
-	// check for WHERE a.b (a is relation, b is attribute, is that syntax or schema?
+	// check whether whether tree is disjoint 
+	// (right now the only situation is: there is some attribute in SELECT / WHERE that does not belong to any tables in FROM/INNER JOIN)
+
+
+	// check for Select a from b where c = "" whether a & c is from table b
+	// check forSelect a from b inner join c on d = e where f = "" . a,d,e,f must be from c OR d
+	
+	QueryPlan qp = queryPlans.at(0);
+	
+	// check SELECT clause
+	for(int i = 0; i < qp.projections.size(); i++)
+	{
+		// TODO: find table that this column belongs to
+		string tableName;
+		bool found = false;
+
+		for(int in = 0; in < qp.selections.size(); in++)
+		{
+			if(qp.selections.at(in).compare(tableName) == 0)
+			{
+				found = true;
+				break;
+			}
+		}
+		if(!found)
+		{
+			return false;
+		}
+
+	}	
+
+	// check WHERE clause
+	for(int i = 0; i < qp.conditions.size(); i++)
+	{
+		
+		string tableName;
+		bool found = false;
+		if(!qp.conditions.at(i).isLeftStr)
+		{
+			// TODO: find table that this column belongs to
+			//tableName = 
+			for(int in = 0; in < qp.selections.size(); in++)
+			{
+				if(qp.selections.at(in).compare(tableName) == 0)
+				{
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+			{
+				return false;
+			}
+		}
+		found = false;
+		if(!qp.conditions.at(i).isRightStr)
+		{
+			// TODO: find table that this column belongs to
+			//tableName = 
+			for(int in = 0; in < qp.selections.size(); in++)
+			{
+				if(qp.selections.at(in).compare(tableName) == 0)
+				{
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+			{
+				return false;
+			}
+		}
+
+	}
+
+	// if there is inner join, check that 1 is from table A, 1 is from table B
+	for(int i = 0; i < qp.joins.size(); i++)
+	{
+		
+		string leftTableName, rightTableName;
+		// TOOD: get tableName of this column
+		//leftTableName = qp.joins.at(i).leftValue;
+		//rightTableName = 
+		// if(leftTableName.compare(rightTableName) == 0)
+		// {
+		//		return false;
+		// }
+		int leftIndex = -1, rightIndex = -1;
+		for(int in = 0; in < qp.selections.size(); in++)
+		{
+			if(qp.selections.at(in).compare(leftTableName) == 0)
+			{
+				leftIndex = in;
+			}
+			if(qp.selections.at(in).compare(rightTableName) == 0)
+			{
+				rightIndex = in;
+			}
+		}
+		if(leftIndex == rightIndex || leftIndex == -1 || rightIndex == -1)
+		{
+			return false;
+		}
+		
+
+	}
 	return true;
 }
 
-bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vector<int> * clausePosPtr)
+bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 {
 	// ** ASSUME : No renaming of relation name. Spaces bet. ,
+	// ** only cater for 1 inner join
 
 	// select * from a
 	// select *, b from a
 	// select * from a where b = c
 	// select * from a where b = ""
-	// select * from a inner join b on a.c = b.c
+	// select * from a inner join b on a.c = b.c (R.A is not allowed for now)
+
+
+	QueryPlan qp;
+	queryPlans.push_back(qp);
+
 	vector<string> compulsoryClauses, optionalClauses;
 	compulsoryClauses.push_back("SELECT"); // follow by */a/r.a
 	compulsoryClauses.push_back("FROM"); // follow by r a
@@ -93,6 +343,8 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 	bool isFirstValue = true;
 	bool checkComplusory = true;
 	bool isInnerJoin = false;
+	bool isAlrightToEnd = false;
+
 	for(int i = 0; i < tokensPtr->size(); i++)
 	{
 		string currentValue = tokensPtr->at(i);
@@ -101,6 +353,14 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 		
 		if(expectClause)
 		{
+			if(in >= compulsoryClauses.size())
+			{
+				// finish checking for compulsoryClauses
+				in = 0;
+				checkComplusory = false;
+				isFirstValue = true;
+			}
+
 			if(checkComplusory)
 			{
 				if(upperValue.compare(compulsoryClauses.at(in)) != 0)
@@ -110,6 +370,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 			}
 			else
 			{
+				isAlrightToEnd = false;
 				if(upperValue.compare("INNER") == 0)
 				{
 					i++;
@@ -136,12 +397,22 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 						{
 							return false;
 						}
-						
+						/*
+						if(tdPtr->tableExists(currentValue1))
+						{
+							qp.selections.push_back(currentValue1);
+						}
+						else
+						{
+							return false;
+						}
+						*/
 					}
 					else
 					{
 						return false;
 					}
+					
 					i++;
 					if(i < tokensPtr->size())
 					{
@@ -178,16 +449,8 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 					return false;
 				}
 			}
-			// CREATE NODE INSTEAD
-			clausePosPtr->push_back(i);
 			in++;
-			if(in >= compulsoryClauses.size())
-			{
-				// finish checking for compulsoryClauses
-				in = 0;
-				checkComplusory = false;
-				isFirstValue = true;
-			}
+			
 			expectClause = false;
 		}
 		else
@@ -196,7 +459,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 			{
 				// check whether there is , or it is ,
 				vector<string> temp = splitString(currentValue, ",");
-				if(temp.size() > 0)
+				if(temp.size() > 1)
 				{
 					// found ,
 					hasColma = true;
@@ -214,7 +477,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 				// after SELECT value
 				if(in == 1)
 				{
-					// follow by */a/r.a
+					// follow by */a
 					string value;
 					if (hasColma)
 					{
@@ -234,12 +497,27 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 					}
 					else
 					{
-						if(!isAttributeOrRelationDotAttribute(value))
+						if(value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
 						{
 							return false;
 						}
 					}
-				
+					/*
+						if(tdPtr->columnExists(value))
+						{
+							qp.projections.push_back(value);
+						}
+						else
+						{
+							return false;
+						}
+					*/
+					if(!hasColma)
+					{
+						expectClause = true;
+					}
+					isAlrightToEnd = false;
+
 				}
 				// after FROM value
 				else if (in == 2)
@@ -261,27 +539,47 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 						// there exist some weird values
 						return false;
 					}
-
+					else
+					{
+						qp.selections.push_back(value);
+					}
+					if(!hasColma)
+					{
+						expectClause = true;
+						isAlrightToEnd = true;
+					
+					}
+					else
+					{
+						isAlrightToEnd = false;
+					}
 				}
-				if(!hasColma)
-				{
-					expectClause = true;
-				}
+			
+				
 			}
 			// !checkComplusory
 			else
 			{
+				
 				if(isInnerJoin)
 				{
-					// this must be R.b = R1.d / b = d
-					if(!isAttributeOrRelationDotAttribute(currentValue))
+					// this must be b = d
+					if(currentValue.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
 					{
 						return false;
 					}
+					/*
+					if(!tdPtr->columnExists(currentValue))
+					{
+						return false;
+					}
+					*/
+
 					i++;
+					string currentValue1;
 					if(i < tokensPtr->size())
 					{
-						string currentValue1 = tokensPtr->at(i);
+						currentValue1 = tokensPtr->at(i);
 						if(currentValue1.compare("=") != 0)
 						{
 							return false;
@@ -292,28 +590,39 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 						return false;
 					}
 					i++;
+					string currentValue2 ;
 					if(i < tokensPtr->size())
 					{
-						string currentValue1 = tokensPtr->at(i);
-						if(!isAttributeOrRelationDotAttribute(currentValue1))
+						currentValue2 = tokensPtr->at(i);
+						if(currentValue2.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
 						{
 							return false;
 						}
-						
+						/*
+						if(!tdPtr->columnExists(currentValue2))
+						{
+							return false;
+						}
+						*/
 					}
 					else
 					{
 						return false;
 					}
-					
+					SelectCondition con(currentValue,false, "=", currentValue2, false);
+					qp.joins.push_back(con);
+					isAlrightToEnd = true;
+					expectClause = true;
 				}
 				else
 				{
-					// can be R.b = R1.d/ a.b = "" / "" = a.b
+					bool isLeftStr, isRightStr;
+					// can be b = a/ a = "" / "" = a
 					if(currentValue.compare("\"") == 0)
 					{
 						// find end of "
 						string a;
+						i++;
 						while(i < tokensPtr->size())
 						{
 							currentValue = tokensPtr->at(i);
@@ -325,15 +634,29 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 							{
 								break;
 							}
+							i++;
 						}
+						currentValue= a;
+						isLeftStr = true;
+					}
+					// "abc"
+					else if (currentValue.find_first_of("\"") !=  currentValue.find_last_of("\""))
+					{
+						isLeftStr = true;
 					}
 					else
 					{
-						if(!isAttributeOrRelationDotAttribute(currentValue))
+						if(currentValue.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
 						{
-
 							return false;
 						}
+						/*
+						if(!tdPtr->columnExists(currentValue))
+						{
+							return false;
+						}
+						*/
+						isLeftStr = false;
 					}
 					i++;
 					if(i < tokensPtr->size())
@@ -349,33 +672,50 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 						return false;
 					}
 					i++;
+					string currentValue2;
 					if(i < tokensPtr->size())
 					{
-						string currentValue1 = tokensPtr->at(i);
-						if(currentValue.compare("\"") == 0)
+						
+						currentValue2 = tokensPtr->at(i);
+						if(currentValue2.compare("\"") == 0)
 						{
 							// find end of "
 							string a;
+							i++;
 							while(i < tokensPtr->size())
 							{
-								currentValue1 = tokensPtr->at(i);
-								if(currentValue1.compare("\"") != 0)
+								currentValue2 = tokensPtr->at(i);
+								if(currentValue2.compare("\"") != 0)
 								{
-									a += currentValue1;
+									a += currentValue2;
 								}
 								else
 								{
 									break;
 								}
+								i++;
 							}
+							currentValue2= a;
+							isRightStr = true;
+						}
+						// "abc"
+						else if (currentValue2.find_first_of("\"") !=  currentValue2.find_last_of("\""))
+						{
+							isRightStr = true;
 						}
 						else
 						{
-							if(!isAttributeOrRelationDotAttribute(currentValue1))
+							if(currentValue2.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
 							{
-
 								return false;
 							}
+							/*
+							if(!tdPtr->columnExists(currentValue2))
+							{
+								return false;
+							}
+							*/
+							isRightStr = false;
 						}
 
 					}
@@ -383,11 +723,18 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, vect
 					{
 						return false;
 					}
+					SelectCondition con(currentValue,isLeftStr, "=", currentValue2, isRightStr);
+					qp.conditions.push_back(con);
+					isAlrightToEnd = true;
 				}
 			}
 		}
 
 	}	// end of for
+	if(!isAlrightToEnd)
+	{
+		return false;
+	}
 	return true;
 }
 
