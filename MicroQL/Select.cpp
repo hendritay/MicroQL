@@ -51,7 +51,7 @@ void Select :: removeRedundancy()
 {
 	// change thoery/concept to code
 	QueryPlan * qpPtr = &queryPlans.at(0);
-	// remove exact duplicated where conditions (a = b AND a = b
+	// remove exact duplicated where conditions (a = b AND a = b)
 	// remove duplicated where conditions (a = " " AND " " = a, a = b AND b = a)
 }
 
@@ -211,7 +211,7 @@ bool Select :: parseSemantics()
 
 
 	// check for Select a from b where c = "" whether a & c is from table b
-	// check forSelect a from b inner join c on d = e where f = "" . a,d,e,f must be from c OR d
+	// check for Select a from b inner join c on d = e where f = "" . a,d,e,f must be from c OR d
 	
 	QueryPlan qp = queryPlans.at(0);
 	
@@ -367,6 +367,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 				{
 					return false;
 				}
+				in++;
 			}
 			else
 			{
@@ -449,7 +450,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 					return false;
 				}
 			}
-			in++;
+			
 			
 			expectClause = false;
 		}
@@ -458,15 +459,18 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 			if(checkComplusory)
 			{
 				// check whether there is , or it is ,
-				vector<string> temp = splitString(currentValue, ",");
-				if(temp.size() > 1)
+				int pos = currentValue.find(',');
+				vector<string> temp; 
+				if(pos != -1)
 				{
 					// found ,
 					hasColma = true;
+					temp = splitString(currentValue, ",");
 				}
 				else if(currentValue.compare(",") == 0)
 				{
 					hasColma = true;
+					temp = splitString(currentValue, ",");
 				}
 				else
 				{
@@ -481,7 +485,31 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 					string value;
 					if (hasColma)
 					{
-						value = temp[0];
+						if(temp.size() > 1)
+						{
+							for(int index = 0; index < temp.size(); index++)
+							{
+								if(temp.at(index).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
+								{
+									return false;
+								}
+								/*
+								if(tdPtr->columnExists(temp.at(index)))
+								{
+									qp.projections.push_back(temp.at(index));
+								}
+								else
+								{
+									return false;
+								}
+								*/
+							}
+							hasColma = false;
+						}
+						else
+						{
+							value = temp[0];
+						}
 					}
 					else
 					{
@@ -501,8 +529,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 						{
 							return false;
 						}
-					}
-					/*
+						/*
 						if(tdPtr->columnExists(value))
 						{
 							qp.projections.push_back(value);
@@ -511,7 +538,9 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 						{
 							return false;
 						}
-					*/
+						*/
+					}
+
 					if(!hasColma)
 					{
 						expectClause = true;
@@ -726,6 +755,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr)
 					SelectCondition con(currentValue,isLeftStr, "=", currentValue2, isRightStr);
 					qp.conditions.push_back(con);
 					isAlrightToEnd = true;
+					expectClause = true;
 				}
 			}
 		}
