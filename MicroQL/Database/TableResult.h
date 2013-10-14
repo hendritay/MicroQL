@@ -9,7 +9,12 @@ using namespace std;
 class TableResult {
 public:
 	void loadResult(string tableName, vector<MQLColumn> column, vector<MQLCondition> condition);// dummy method method parameter subject to change	
-	void merge(TableResult *tb); // dummy method 
+
+	TableResult merge(TableResult *tb, TableResult *tb2);
+	int getNoOfRows();
+	string getValueAt(int rowIndex, int columnIndex);
+	int getNoOfColumns();
+	void addMergedRow(TableResult *tb1, int rowIndex1, TableResult *tb2, int rowIndex2);
 private:
 	TupleManager tm;
 
