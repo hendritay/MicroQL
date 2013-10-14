@@ -1,7 +1,7 @@
 #pragma once
-#include "../Storage/FileManager.h"
-#include "../Storage/StorageManager.h"
-#include "TableDefinition.h"
+#include "Storage/FileManager.h"
+#include "Storage/StorageManager.h"
+#include "Database/TableDefinition.h"
 #include <map>
 #include <string>
 typedef map<string, pair<int, TableDefinition *>> DictionaryList;
