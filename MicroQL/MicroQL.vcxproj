@@ -89,6 +89,7 @@
     <ClInclude Include="MainType.h" />
     <ClInclude Include="QueryPlan.h" />
     <ClInclude Include="Select.h" />
+    <ClInclude Include="SelectCondition.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Storage\BTree.h" />
     <ClInclude Include="Storage\BTreeKey.h" />
@@ -105,6 +106,7 @@
     <ClCompile Include="MicroQL.cpp" />
     <ClCompile Include="QueryPlan.cpp" />
     <ClCompile Include="Select.cpp" />
+    <ClCompile Include="SelectCondition.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
