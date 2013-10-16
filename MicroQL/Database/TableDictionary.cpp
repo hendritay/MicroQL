@@ -2,7 +2,7 @@
 #include "CommonUtility.h"
 #include "TableDictionary.h"
 #include "TableDefinition.h"
-
+#include "Storage\BTree.h"
 
 void TableDictionary::storeTableToDictionary(TableDefinition *td) {
 	string page = myFile->readPage(StorageManager::DictionaryPage);
@@ -46,6 +46,8 @@ void TableDictionary::storeTableToDictionary(TableDefinition *td) {
 
 	// Where the tablenumber
 	myFile->writeAt(CommonUtility::convertShortTo2Bytes(NoOfTables + 1), StorageManager::DictionaryPage, 0);
+
+	BTree::InitializePage(myFile, myStorage, td->getRecordPage());
 
 }
 

@@ -56,6 +56,10 @@ public:
 	void setRecordPage(int initialRecordPage) {
 		startRecordPageNo = initialRecordPage;
 	}
+
+	int getRecordPage() {
+		return startRecordPageNo;
+	}
 private:
 	string tableName;
 	ColumnList columnList;
