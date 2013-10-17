@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Parser.h"
 
 Parser::Parser(void)
@@ -47,7 +48,25 @@ bool replaceSubstring(string& inputString, const string& replaceTarget, const st
 
 	return true;
 }
+bool preprocessCommand(string command){
 
+	replaceSubstring(command, "  ", " ");
+	replaceSubstring(command, "( ", "(");
+	replaceSubstring(command, " (", "(");
+	replaceSubstring(command, ") ", ")");
+	replaceSubstring(command, " )", ")");
+	replaceSubstring(command, " ;", ";");
+	replaceSubstring(command, "  =", "=");
+	replaceSubstring(command, "= ", "=");
+	replaceSubstring(command, "  '", "'");
+	//replaceSubstring(command, "' ", "'");
+	trim(command);
+	
+	//cout << "last char: " << command.substr(command.length() -1, 1) << endl;
+
+	if (command.substr(command.length() -1, 1) != ";")
+		return false;
+}
 bool parse(string command){
 
 	replaceSubstring(command, "  ", " ");
@@ -142,16 +161,20 @@ bool getAndAddCol(string colInfo, string priKey, TableDefinition &td){
 	}
 }
 
-bool parseCreateCmd(string command){
+TableDefinition* parseCreateCmd(string command){
 	vector <string> createTableInformation;
 	string tableInformation, columnInformation, priKeyInformation, tableName;
 	string findPriKey = "PRIMARY KEY";
+	bool success = preprocessCommand(command);
+	if(!success){
+		return NULL;
+	}
 	int colNamePos = command.find("(");
 	
 	tableInformation = command.substr(0, colNamePos);
 	tableName = getTableName(tableInformation, "CREATE TABLE ");
 	if (tableName == "NULL")
-		return false;
+		return NULL;
 	
 	TableDefinition *td = new TableDefinition(tableName);
 
@@ -160,13 +183,13 @@ bool parseCreateCmd(string command){
 	if (priKeyPos!=std::string::npos){
 	  priKeyInformation = command.substr(priKeyPos+findPriKey.length(), command.length()-priKeyPos);}
 	else{
-	  return false;}
+	  return NULL;}
 
 	//cout<< "PriKeyInformation: " << priKeyInformation <<endl;
 	
 	//cout<<priKeyInformation <<endl;
 	if (!(priKeyInformation.find("(") != string::npos && priKeyInformation.find(")") != string::npos && (priKeyInformation.find("(") < priKeyInformation.find(")"))&&(priKeyInformation.find_last_of(")")!= priKeyInformation.find(")")))){
-			return false;
+			return NULL;
 		}
 	string priKey = getPriKey(priKeyInformation);
 	columnInformation = trim(command.substr(colNamePos+1, priKeyPos - colNamePos-2));
@@ -176,14 +199,23 @@ bool parseCreateCmd(string command){
 	//cout<<priKeyInformation << endl;
 	bool getColSuccess = getAndAddCol(columnInformation, priKey, *td);
 	if(!getColSuccess){
-		return false;}
+		return NULL;}
+	else{
+		return td;
+	}
 }
 
-bool parseDeleteCmd(string command){
+DeleteDefinition* parseDeleteCmd(string command){
 	string tableInformation = command.substr(0, command.find("WHERE "));
 	string tableName = getTableName(tableInformation, "DELETE FROM ");
 	vector<pair<string, string>> conditionClauses;
 	vector<string> splitResults;
+
+	bool success = preprocessCommand(command);
+	if(!success){
+		return NULL;
+	}
+
 	DeleteDefinition *delDef = new DeleteDefiniton();
 	delDef->setName(tableName);
 
@@ -201,10 +233,10 @@ bool parseDeleteCmd(string command){
 		splitResults = split(tokens[counter], '=');
 		if (splitResults.size() != 2){
 			//cout << "incorrect no. of arguments" << endl;
-			return false;
+			return NULL;
 		}
 		if (!(splitResults[1].find("'") != string::npos && (splitResults[1].find_last_of("'") != splitResults[1].find("'") ))){
-			return false;
+			return NULL;
 		}
 		replaceSubstring(splitResults[1], "'", " ");
 		splitResults[1] = trim(splitResults[1]);
@@ -214,26 +246,32 @@ bool parseDeleteCmd(string command){
 	for (vector<pair<string, string>>::size_type counter = 0; counter < conditionClauses.size(); counter++){
 		MQLColumn col1;
 		MQLColumn col2;
-		MQLCondition cond;
 		col1 = MQLColumn(conditionClauses[counter].first, CT_VARCHAR);
 		col2 = MQLColumn(conditionClauses[counter].second, CT_CONSTANT_STRING);
-		cond = MQLCondition(col1, "=", col2);
-		//don't know what's the add set
-		//delDef.addSet(col1);
-		//delDef.addSet(col2);
+		string oper ="=";
+		MQLCondition cond(col1, oper, col2);
 		delDef->addWhere(cond);
 		//cout << "condition " << counter << ": " << conditionClauses[counter].first << " VS " << conditionClauses[counter].second << endl;
 	}
 
-	return true;
+	return delDef;
 }
 
-bool parseUpdateCmd(string command){
+UpdateDefinition* parseUpdateCmd(string command){
 	vector<pair<string, string>> updateInfoClauses, conditionClauses;
 	vector<string> splitResults, splitUpdateInfo, updateInfoDetails, splitConditions, conditionDetails;
 
 	string tableInformation = command.substr(0, command.find("SET "));
 	string tableName = getTableName(tableInformation, "UPDATE ");
+
+	MQLColumn col1;
+	MQLColumn col2;
+
+	UpdateDefinition *upDef = new UpdateDefinition();
+	upDef->setName(tableName);
+	
+	if (tableName == "NULL")
+	return NULL;
 
 	replaceSubstring(command, " SET ", "|");
 	replaceSubstring(command, " WHERE ", "|");
@@ -244,7 +282,7 @@ bool parseUpdateCmd(string command){
 	splitResults = split(command, '|');
 
 	if (splitResults.size() < 2)
-		return false;
+		return NULL;
 	else if (splitResults.size() == 2 || splitResults.size() == 3){ 
 		//cout << "processing conditions and update information..." << endl;
 
@@ -257,13 +295,20 @@ bool parseUpdateCmd(string command){
 			//cout << "splitting update information..." << endl;
 			updateInfoDetails = split(splitUpdateInfo[counter], '=');
 			if (updateInfoDetails.size() != 2)
-				return false;
+				return NULL;
 			updateInfoClauses.push_back(make_pair(updateInfoDetails[0], updateInfoDetails[1]));
 		}
 
-		/*for (vector<pair<string, string>>::size_type counter = 0; counter < updateInfoClauses.size(); counter++){
-			cout << "update info clauses: " << updateInfoClauses[counter].first << " VS " << updateInfoClauses[counter].second << endl;
-		}*/
+		for (vector<pair<string, string>>::size_type counter = 0; counter < updateInfoClauses.size(); counter++){
+
+		col1 = MQLColumn(updateInfoClauses[counter].first, CT_VARCHAR);
+		col2 = MQLColumn(updateInfoClauses[counter].second, CT_VARCHAR);
+		// ask mr hendri to resolve
+		//string oper = "=";
+		//upDef->addSet(col1, oper, col2);
+
+		//cout << "update info clauses: " << updateInfoClauses[counter].first << " VS " << updateInfoClauses[counter].second << endl;
+		}
 
 		if (splitResults.size() == 3){
 			string conditions = splitResults[2];
@@ -271,40 +316,51 @@ bool parseUpdateCmd(string command){
 			for (vector<string>::size_type counter = 0; counter < splitConditions.size(); counter++){
 				conditionDetails = split(splitUpdateInfo[counter], '=');
 				if (conditionDetails.size() != 2)
-					return false;
+					return NULL;
 				conditionClauses.push_back(make_pair(conditionDetails[0], conditionDetails[1]));
 			}
 
-			/*for (vector<pair<string, string>>::size_type counter = 0; counter < conditionClauses.size(); counter++){
-				cout << "update condition clauses: " << conditionClauses[counter].first << " VS " << conditionClauses[counter].second << endl;
-			}*/
+			for (vector<pair<string, string>>::size_type counter = 0; counter < conditionClauses.size(); counter++){
+				col1 = MQLColumn(conditionClauses[counter].first, CT_VARCHAR);
+				col2 = MQLColumn(conditionClauses[counter].second, CT_CONSTANT_STRING);
+				string oper ="="; 
+				MQLCondition cond(col1, oper, col2);
+				upDef->addWhere(cond);
+				//cout << "update condition clauses: " << conditionClauses[counter].first << " VS " << conditionClauses[counter].second << endl;
+			}
 		}
 
-		return true;
+		return upDef;
 	}else
-		return false;
+		return NULL;
 }
 
-bool parseInsertCmd(string command){
+InsertDefinition* parseInsertCmd(string command){
 	vector<pair<string, string>> insertClauses;
 
+	bool success = preprocessCommand(command);
+	if(!success){
+		return NULL;
+	}
 	string tableInformation = command.substr(0, command.find("("));
-	string tableName = getTableName(tableInformation, "INSERT INTO ");
+	string tableName = getTableName(tableInformation, "INSERT INTO");
+	InsertDefinition *insDef = new InsertDefinition();
+	insDef->setName(tableName);
 
 	replaceSubstring(command, "( ", "(");
 	replaceSubstring(command, ", ", ",");
 	replaceSubstring(command, " ,", ",");
 
-	string colsvals = command.substr(command.find(" (") + 1, command.length() - command.find("( ") + 2);
+	string colsvals = command.substr(command.find("(") + 1, command.length() - command.find("(") + 2);
 	//cout << colsvals << endl;
-	replaceSubstring(colsvals, " VALUES ", "|");
+	replaceSubstring(colsvals, "VALUES", "|");
 	replaceSubstring(colsvals, "(", "");
 	replaceSubstring(colsvals, ")", "");
 
 	vector<string> seperateInformation = split(colsvals, '|');
 
 	if (seperateInformation.size() != 2)
-		return false;
+		return NULL;
 
 	string cols = seperateInformation[0];
 	string values = seperateInformation[1];
@@ -313,15 +369,25 @@ bool parseInsertCmd(string command){
 	vector<string> valuesDetails = split(values, ',');
 
 	if (colsDetails.size() != valuesDetails.size()) //number of cols to insert date into doesn't tally with number of values provided
-		return false;
+		return NULL;
 
 	for (vector<string>::size_type counter = 0; counter < colsDetails.size(); counter++){
+		if (!(valuesDetails[counter].find("'") != string::npos && (valuesDetails[counter].find_last_of("'") != valuesDetails[counter].find("'") ))){
+			return NULL;
+		}
+		replaceSubstring(valuesDetails[counter], "'", "");
 		insertClauses.push_back(make_pair(colsDetails[counter], valuesDetails[counter]));
 	}
 
-	/*for (vector<pair<string, string>>::size_type counter = 0; counter < insertClauses.size(); counter++){
-		cout << "insert clauses: " << insertClauses[counter].first << " VS " << insertClauses[counter].second << endl;
-	}*/
+	for (vector<pair<string, string>>::size_type counter = 0; counter < insertClauses.size(); counter++){
+		
+		MQLColumn col1(insertClauses[counter].first, VT_VARCHAR);
+		MQLColumn col2(insertClauses[counter].second, CT_CONSTANT_STRING);
+		string oper = "=";
+		MQLCondition set(col1, oper, col2);
+		insDef->addInsert(set);
+		//cout << "insert clauses: " << insertClauses[counter].first << " VS " << insertClauses[counter].second << endl;
+	}
 
-	return true;
+	return insDef;
 }
