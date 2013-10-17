@@ -9,7 +9,9 @@
 #include "Database/TableDefinition.h"
 #include "Database/TableDictionary.h"
 #include "Database/DeleteDefinition.h"
-#include<stdafx.h>
+#include "Database/UpdateDefinition.h"
+#include "Database/MQLCondition.h"
+#include "Database/InsertDefinition.h"
 using namespace std;
 class Parser
 {
@@ -28,11 +30,12 @@ private:
 	bool parseDeleteCmd(string command);
 	bool parseUpdateCmd(string command);
 	bool parseInsertCmd(string command);
-	bool parse(string command);
+	bool preprocessCommand(string command);
 
 	//Variables
-	string tableName;
 	TableDefinition  *td;
 	MQLColumn mqlCol;
 	DeleteDefinition *delDef;
-}
+	UpdateDefinition *upDef;
+	InsertDefinition *insDef;
+};

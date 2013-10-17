@@ -87,6 +87,7 @@
     <ClInclude Include="Database\TableResult.h" />
     <ClInclude Include="Database\UpdateDefinition.h" />
     <ClInclude Include="MainType.h" />
+    <ClInclude Include="Parser.h" />
     <ClInclude Include="QueryPlan.h" />
     <ClInclude Include="Select.h" />
     <ClInclude Include="SelectCondition.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="database\TableDefinition.cpp" />
     <ClCompile Include="Database\TableDictionary.cpp" />
     <ClCompile Include="MicroQL.cpp" />
+    <ClCompile Include="Parser.cpp" />
     <ClCompile Include="QueryPlan.cpp" />
     <ClCompile Include="Select.cpp" />
     <ClCompile Include="SelectCondition.cpp" />
