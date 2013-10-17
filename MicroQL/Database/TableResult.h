@@ -16,7 +16,7 @@ public:
 	string getValueAt(int rowIndex, int columnIndex);
 	int getNoOfColumns();
 	void addMergedRow(TableResult *tb1, int rowIndex1, TableResult *tb2, int rowIndex2);
-
+	
 private:
 	TupleManager tm;
 
