@@ -21,6 +21,14 @@ public:
 	// columnname must be unique through the entire database. 
 	bool columnExists(string columnName);
 
+	TableDefinition getTableDefinition(string tableName) {
+		return *dicitionaryList.find(tableName)->second.second;
+	}
+
+	string getTableByColumnName(string columnName) {
+		return "";
+	}
+
 private:
 	void addColumnToColumnList(TableDefinition *td);
 
