@@ -26,10 +26,10 @@ private:
 	string getTableName(string tableInfo, string command);
 	string getPriKey(string priKeyInfo);
 	bool getAndAddCol(string colInfo, string priKey);
-	bool parseCreateCmd(string command);
-	bool parseDeleteCmd(string command);
-	bool parseUpdateCmd(string command);
-	bool parseInsertCmd(string command);
+	TableDefinition* parseCreateCmd(string command);
+	DeleteDefinition* parseDeleteCmd(string command);
+	UpdateDefinition* parseUpdateCmd(string command);
+	InsertDefinition* parseInsertCmd(string command);
 	bool preprocessCommand(string command);
 
 	//Variables
