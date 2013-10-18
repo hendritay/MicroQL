@@ -1,39 +1,10 @@
-﻿Build started 10/17/2013 11:58:19 PM.
+﻿Build started 10/18/2013 4:34:00 PM.
      1>Project "C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Touching "Debug\MicroQL.unsuccessfulbuild".
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt MicroQL.cpp Parser.cpp Select.cpp
-         Select.cpp
-     1>c:\users\kim\documents\github\microql\microql\database\mqltuplemanager.h(4): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(30): warning C4101: 'trPtr' : unreferenced local variable
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(208): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(387): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(530): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(576): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(582): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(598): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(606): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(624): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(651): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(662): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(713): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(721): warning C4018: '>=' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(743): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(758): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(783): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(855): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(974): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(988): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1022): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1058): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1072): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1081): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1177): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(197) : see declaration of 'strtok'
-     1>c:\users\kim\documents\github\microql\microql\select.cpp(1183): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(197) : see declaration of 'strtok'
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Parser.cpp
          Parser.cpp
      1>c:\users\kim\documents\github\microql\microql\parser.cpp(90): error C3861: 'parseCreateCmd': identifier not found
      1>c:\users\kim\documents\github\microql\microql\parser.cpp(92): error C3861: 'parseDeleteCmd': identifier not found
@@ -41,11 +12,8 @@
      1>c:\users\kim\documents\github\microql\microql\parser.cpp(96): error C3861: 'parseInsertCmd': identifier not found
      1>c:\users\kim\documents\github\microql\microql\parser.cpp(219): error C2061: syntax error : identifier 'DeleteDefiniton'
      1>c:\users\kim\documents\github\microql\microql\parser.cpp(384): error C2065: 'VT_VARCHAR' : undeclared identifier
-         Generating Code...
-         Skipping... (no relevant changes detected)
-         MicroQL.cpp
      1>Done Building Project "C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" (build target(s)) -- FAILED.
 
 Build FAILED.
 
-Time Elapsed 00:00:03.22
+Time Elapsed 00:00:01.62

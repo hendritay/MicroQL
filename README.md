@@ -9,7 +9,8 @@ Assumptions
 1. Each table has different columnname with each other table. 
 2. Only varchar is supported.
 3. No renaming allow in FROM clause.
-4. INNER JOIN keyword must be used when there is a join between tables
+4. INNER JOIN keyword must be used when there is a join between tables 
+(i.e WHERE clause does not allow this: a = b where a & b are not from the same table)
 ```
 CREATE syntax
  CREATE TABLE <tablename> (
