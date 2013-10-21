@@ -7,6 +7,7 @@ class MQLTupleManager;
 
 class  MQLTuple {
 public:
+
 	MQLTuple(MQLTupleManager *parent) {
 		myParent = parent;
 	}
@@ -14,14 +15,13 @@ public:
 		valueList.push_back(value);
 	}
 
-	bool match(vector<MQLCondition> &cond) {
-		vector<MQLCondition>::iterator iter;
-
-		//for (iter = cond.begin(); iter != cond.end(); iter++) {
-		//	myParent->
-		//}
-		
+	string getValueAt(int i) {
+		list<string>::iterator iter = valueList.begin();
+		std::advance(iter, i);
+		return *iter;
 	}
+
+
 	string serialize() {
 		list<string>::iterator iter;
 		string resultList;
@@ -55,8 +55,18 @@ public:
 		return tuple;
 
 	}
+
+	int getNoColumn() {
+		return valueList.size();
+	}
+	
+	void removeValueAt(int i) {
+		list<string>::iterator iter =valueList.begin();
+		advance(iter, i);
+		valueList.erase(iter);
+	}
 private:
-	//vector<MQLColumn> column;
+	
 	list<string> valueList;
 	MQLTupleManager *myParent;
 };

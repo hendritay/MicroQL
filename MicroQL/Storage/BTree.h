@@ -6,6 +6,7 @@
 #include "Storage\BTreePage.h"
 #include "Storage\FileManager.h";
 #include "Storage\StorageManager.h";
+#include "Database\MQLTupleManager.h";
 
 #include "Database\MQLCondition.h"
 
@@ -28,38 +29,40 @@ public:
 		scan(rootPage, bKey);
 	}
 
-	//void scanAllKey(int rootPage, vector<MQLTuple> &tuple, const vector<MQLCondition> &cond) {
-	//	scan(rootPage, bKey);
-	//}
-	//void  scan(int rootPageNo, MQLTupleManager *tm, vector<BTreeKey> &bKey, const vector<MQLCondition> &cond) {
+	void scanAllKey(int rootPage, MQLTupleManager *tm) {
+		scan(rootPage, tm);
+	}
+	void  scan(int rootPageNo, MQLTupleManager *tm) {
 
-	//	string pageContent = myFileManager->readPage(rootPageNo);
-	//	BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent);
+		string pageContent = myFileManager->readPage(rootPageNo);
+		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent);
+				
+		if (myBTreePage.getKeySize() == 0) { // root page {
+			return;
+		} 
 
-	//	if (myBTreePage.getKeySize() == 0) { // root page {
-	//		return;
-	//	} 
+		int size = myBTreePage.getKeySize();
 
-	//	int size = myBTreePage.getKeySize();
+		for (int i = 0; i < size; i++) {
+			BTreeKey &key = myBTreePage.getBKey(i);
+			MQLTuple tuple = MQLTuple::deSerialize(tm, key.getPayload());
+			
+			if (tm->match(tuple)) {
+				tm->addTuple(tuple);
+			}
 
-	//	for (int i = 0; i < size; i++) {
-	//		BTreeKey &key = myBTreePage.getBKey(i);
-	//		MQLTuple tuple = MQLTuple::deSerialize(tm, key.getPayload());
-	//		tuple.match(cond);
-	//		bKey.push_back(key);
+			if (key.getLeftChildPage() != 0) {
+					scan(key.getLeftChildPage(), tm);
+			} 
 
-	//		if (key.getLeftChildPage() != 0) {
-	//				scan(key.getLeftChildPage(), bKey);
-	//		} 
-
-	//		if (i == size -1 ){
-	//			if (key.getRightChild() != 0)
-	//				scan(key.getRightChild(), bKey);
-	//		}
-	//	}
+			if (i == size -1 ){
+				if (key.getRightChild() != 0)
+					scan(key.getRightChild(), tm);
+			}
+		}
 
 
-	//}	
+	}	
 	void insertRecord(int rootPage, BTreeKey bKey) {
 
 		
