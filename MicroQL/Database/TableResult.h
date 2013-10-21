@@ -9,15 +9,33 @@ using namespace std;
 
 class TableResult {
 public:
-	void loadResult(string tableName, vector<MQLColumn> column, vector<MQLCondition> condition);// dummy method method parameter subject to change	
+	
+	void loadResult(string tableName, vector<MQLColumn> column, vector<MQLCondition> condition){// dummy method method parameter subject to change	
+//		TableDefinition td =tableDict->getTableDefinition(tableName);
+		
+	}
 
-	TableResult merge(TableResult *tb, TableResult *tb2);
-	int getNoOfRows();
-	string getValueAt(int rowIndex, int columnIndex);
-	int getNoOfColumns();
-	void addMergedRow(TableResult *tb1, int rowIndex1, TableResult *tb2, int rowIndex2);
+	TableResult merge(TableResult *tb, TableResult *tb2) {
+		int a = 10;
+		TableResult tr;
+		return tr;
+	}
+	int getNoOfRows() {
+		return 10;
+	}
+	string getValueAt(int rowIndex, int columnIndex) {
+		return "";
+	}
+	int getNoOfColumns() {
+		int a = 10;
+	}
+	void addMergedRow(TableResult *tb1, int rowIndex1, TableResult *tb2, int rowIndex2) {
+		int a = 10;
+	}
 	
 private:
-	TupleManager tm;
+	MQLTupleManager *tm;
+	//TableDictionary *tableDict;
+
 
 };

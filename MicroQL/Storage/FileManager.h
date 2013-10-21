@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <list>
+
 using namespace std;
 
 class FileManager {
@@ -10,9 +12,12 @@ public:
 		path = mainPath;
 	}
 	static bool createAFile(string path);
-	void writeAt(string payload, int pageNo, int offset);
+	void writeAt(list<char> &payload, int pageNo, int offset);
+	void writeAt(char payload, int pageNo, int offset);
 
 	string readPage(int pageNo);
+	char * readPageChar(int pageNo);
+	
 private:
 	static string FileHeader ;
 	string path;

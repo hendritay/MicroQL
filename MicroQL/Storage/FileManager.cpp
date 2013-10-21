@@ -9,45 +9,71 @@ string FileManager::FileHeader = "MicroQL 1.0";
 
 bool FileManager::createAFile(string path) {
 	// initialize file. 
-	 ofstream myfile(path);
-	//ifstream myfile (path);
-	if (myfile.is_open()) {
-		// precreate a header file
-		myfile << FileManager::FileHeader;
-		myfile << "Page Size : ";
-		myfile << PageSize;
-		myfile << "bytes ";
-		int remaining = PageSize;
-		string end =	"FileHeader End";
-		myfile.seekp(remaining -end.size());
-		myfile.write(end.c_str(), end.size());
-		// precreate a storage manager page
-		myfile << "11"; // storage manager page and table dicitonary page 
-		myfile.seekp(PageSize *2);
-		myfile << CommonUtility::convertShortTo2Bytes(0);
-		
-		
-	} else 
-		return false;
-	
+	ofstream myfile(path);
+	if (myfile.is_open())
+		myfile.close();
+
+	FileManager fm(path);
+	list<char> header;
+	CommonUtility::convertStringToList(FileManager::FileHeader + "Page Size : 4096 bytes", header);
+	list<char> header2;
+	CommonUtility::convertStringToList("11", header2);
+	fm.writeAt(header, 0, 0);
+	fm.writeAt(header2, 1, 0); // storage page
+	fm.writeAt(CommonUtility::convertShortTo2Bytes(0), 2, 0); // dictionary page
 	return true;
 }
 
-void FileManager::writeAt(string payload, int pageNo, int offset) {
-	ofstream myfile(path, ios_base::in);
-	if (myfile.is_open())  {
+void FileManager::writeAt(char payload, int pageNo, int offset) {
+	ofstream myfile(path, ios_base::in | ios_base::binary);
+		if (myfile.is_open())  {
 		myfile.seekp(pageNo * PageSize + offset);		
-		myfile.write(payload.c_str(), payload.size());
+		myfile.write(&payload, 1);
 	}
 	myfile.close();
 }
 
-string FileManager::readPage(int pageNo) {
+void FileManager::writeAt(list<char> &payload, int pageNo, int offset) {
+	ofstream myfile(path, ios_base::in | ios_base::binary);
+	char * pay = new char[payload.size()];
 
-	ifstream myfile(path);
+	list<char>::iterator iter;
+
+	int i = 0;
+	for (iter = payload.begin(); iter != payload.end(); iter++) {
+		pay[i] = *iter;
+		i++;
+	}
+	
+	if (myfile.is_open())  {
+		myfile.seekp(pageNo * PageSize + offset);		
+		myfile.write(pay, payload.size());
+	}
+		myfile.close();
+	delete pay;
+}
+
+char * FileManager::readPageChar(int pageNo) {
+
+	ifstream myfile(path, ios::binary);
 	myfile.seekg(pageNo * PageSize); 
 	char * memblock;
 	memblock = new char [PageSize];
 	myfile.read(memblock, PageSize);
+	myfile.close();
+
+	return memblock;
+}
+
+string FileManager::readPage(int pageNo) {
+
+	ifstream myfile(path, ios::binary);
+	myfile.seekg(pageNo * PageSize); 
+	char * memblock;
+	memblock = new char [PageSize];
+	myfile.read(memblock, PageSize);
+	myfile.close();
+
 	return string(memblock, PageSize);
 }
+

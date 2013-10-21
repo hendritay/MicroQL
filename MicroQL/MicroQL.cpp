@@ -2,10 +2,17 @@
 //
 
 #include "stdafx.h"
+#include "Parser.h"
 #include "Storage\FileManager.h"
 #include "Storage\StorageManager.h"
 #include "Database\TableDefinition.h";
+#include "Database\InsertDefinition.h";
+#include "Database\MQLCondition.h";
+
 #include "Database\TableDictionary.h";
+#include "Storage\BTree.h";
+#include "Storage\BTreePage.h";
+#include "Storage\BTreeKey.h";
 
 #include "Database\MQLColumn.h";
 
@@ -16,139 +23,180 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	Select s;
-	vector<string> validVec, invalidVec;
-	bool b;
-
-	// table ra: attribute PK:a, b, c, d
-	// table rb: attribute PK:e, f, g
-	// table rc: attribute PK:h
-
-	// valid syntax & semantics
-	validVec.push_back("SeLect * from ra");
-	validVec.push_back("Select a from ra");
-	validVec.push_back("Select a, b, c from ra");
-	validVec.push_back("Select a,b,c from ra");
-	validVec.push_back("Select a from ra where c = d");
-	validVec.push_back("Select a from ra where c = \"123\"");
-	validVec.push_back("Select a from ra where \"123\" = c");
-	validVec.push_back("Select a from ra where \"123\" = c and \"abc\" = b");
-	validVec.push_back("Select a from ra where \"123\" = c and b = d");
-	validVec.push_back("Select a from ra where \"123\" = c and b = c");
-	validVec.push_back("Select a from ra inner join rb on a = e");
-	validVec.push_back("Select * from ra inner join rb on e = a");
-	validVec.push_back("Select * from ra inner join rb on b = f");	
-	validVec.push_back("Select a from ra inner join rb on e = d where \"123\" = d");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g");
-	validVec.push_back("Select a from ra inner join rb on e = d where \"ABC\" = e");
-	validVec.push_back("Select a from ra inner join rb on e = d where \"ABC\" = b");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\"");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\" and b = e");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\" and d = f");
-
-	// invalid syntax
-	invalidVec.push_back(" ");
-	invalidVec.push_back("Select ");
-	invalidVec.push_back("a");
-	invalidVec.push_back("Select a");
-	invalidVec.push_back("Select r.a");
-	invalidVec.push_back("Select a from");
-	invalidVec.push_back("Select a from r.a");
-	invalidVec.push_back("Select *,a from ra");
-	invalidVec.push_back("Select *, a from ra");
-	invalidVec.push_back("Select a from ra where");
-	invalidVec.push_back("Select a from ra where c");
-	invalidVec.push_back("Select a from ra where c = ");
-	invalidVec.push_back("Select a from ra where c = b.d");
-	invalidVec.push_back("Select a from ra where c = 123");
-	invalidVec.push_back("Select a from ra where c = d and");
-	invalidVec.push_back("Select a from ra where c = d and b");
-	invalidVec.push_back("Select a from ra inner");
-	invalidVec.push_back("Select a from ra inner join");
-	invalidVec.push_back("Select a from ra inner join on");
-	invalidVec.push_back("Select a from ra inner join rb on ");
-	invalidVec.push_back("Select a from ra inner join rb on a");
-	invalidVec.push_back("Select a from ra inner join rb on a = ");
-	invalidVec.push_back("Select a from ra inner join rb on a = 123");
-	invalidVec.push_back("Select a from ra inner join rb on a = \"123\"");
-	invalidVec.push_back("Select a from ra inner join rb on \"123\" = a");
-	invalidVec.push_back("Select a from ra inner join rb on d = \"abc\"");
-	invalidVec.push_back("Select a from ra inner join rb on d = b.e");
-
-	// invalid semantics & type
-	/*
-	invalidVec.push_back("Select a from ra"); // a is not from table b
-	invalidVec.push_back("Select d from b"); // a is not an atrribute
-	invalidVec.push_back("Select a from c"); // c is not a table
-	invalidVec.push_back("Select a, b, c from b"); // 1 or all attributes is not from table b
-	invalidVec.push_back("Select * from ra where a = b");	// b is not an attribute
-	invalidVec.push_back("Select * from ra where a = i");	// i doesn't exist
-	invalidVec.push_back("Select * from ra where a = e");	// e doesn't belong to ra
-	invalidVec.push_back("Select * from ra where e = a");	// e doesn't belong to ra
-	invalidVec.push_back("Select * from ra inner join rd on a = b");	// rd doesn't exist
-	invalidVec.push_back("Select * from ra inner join rb on h = a");	// h does not belong to rb
-	invalidVec.push_back("Select * from ra inner join rb on a = b");	// both a,b from same table!
-	invalidVec.push_back("Select * from ra inner join rb on a = i");	// i doesn't exist
-	*/	
-	for(int i = 0; i < validVec.size(); i++)
-	{
-		b = s.evaluateQuery(validVec.at(i));
-		if(b == false)
-		{
-			break;
-		}
-	}
-
-	for(int i = 0; i < invalidVec.size(); i++)
-	{
-		b = s.evaluateQuery(invalidVec.at(i));
-		if(b == true)
-		{
-			break;
-		}
-	}
-
-	if(!b)
-	{
-		int i = 0;
-	}
-
-
 	string path = "c:\\study\\cs4221\\hellodb.txt";
-	FileManager::createAFile(path);
-	
+	Parser lrParser;
 	FileManager * fm = new FileManager(path);
 	StorageManager *sm  = new StorageManager(fm);
-
-	TableDefinition *td = new TableDefinition("EmployeeInformation");
-	string columnName = "employeeid";
-	MQLColumn column1(columnName, CT_VARCHAR, 20, true);
-
-	string columnName2 = "age";
-	MQLColumn column2(columnName2, CT_VARCHAR, 10, false);
-	
-	td->addColumn(column1);
-	td->addColumn(column2);
-
-	TableDefinition *td2 = new TableDefinition("Sale");
-	columnName = "saleid";
-	MQLColumn column3(columnName, CT_VARCHAR, 28, true);
-
-	columnName2 = "qty";
-	MQLColumn column4(columnName2, CT_VARCHAR, 30, false);
-	
-	td2->addColumn(column3);
-	td2->addColumn(column4);
-	
-	
 	TableDictionary *tdictionary = new TableDictionary(fm, sm);
-	tdictionary->storeTableToDictionary(td);
-	tdictionary->storeTableToDictionary(td2);
 
-	TableDictionary *tdictionary2 = new TableDictionary(fm, sm);
 	
-	tdictionary2->columnExists("a");
+	FileManager::createAFile(path);	
+	TableDefinition *td = lrParser.parseCreateCmd("CREATE TABLE employeeinformation(employeeid varchar(10), name varchar(30), age varchar(10), PRIMARY KEY(employeeid));");
+	
+	tdictionary->storeTableToDictionary(td);
+	BTree * bt = new BTree(fm, sm);
 
+	string line;
+	while (true) {
+		getline(cin, line);
+		
+		if (line.compare("") == 0)  {
+			break;
+		}
+
+		InsertDefinition *id = lrParser.parseInsertCmd(line)   ;		
+		id->execute(tdictionary, bt);
+		delete id;
+
+	}
+
+
+
+	vector<BTreeKey> bKey;
+	bt->scanAllKey(td->getRecordPage(), bKey);
+
+/*
+	string pageContent = fm->readPage(4);
+
+	for (int i = 0; i < 1000; i++) {
+		string value = CommonUtility::NumberToString(i);
+		string payload = "This is payload" + CommonUtility::NumberToString(i);
+		BTreeKey bkey(value);
+		bkey.setPayload(payload);
+		
+		bt.insertRecord(td->getRecordPage(), bkey);
+			
+	}
+	
+
+	int a= 0;
+*/
+
+	
+	//string value10 = "10";
+	//string payload10 = "This is payload10";
+	//BTreeKey bkey10(value10);
+	//bkey10.setPayload(payload10);
+
+	//string value20 = "20";
+	//string payload20 = "This is payload20";
+	//BTreeKey bkey20(value20);
+	//bkey20.setPayload(payload20);
+
+	//string value30 = "30";
+	//string payload30 = "This is payload30";
+	//BTreeKey bkey30(value30);
+	//bkey30.setPayload(payload30);
+
+	//string value40 = "40";
+	//string payload40 = "This is payload40";
+	//BTreeKey bkey40(value40);
+	//bkey40.setPayload(payload40);
+
+	//BTree bt(fm, sm);
+	//bt.insertRecord(td->getRecordPage(), bkey10);	
+	//bt.insertRecord(td->getRecordPage(), bkey30);
+	//bt.insertRecord(td->getRecordPage(), bkey20);
+	//bt.insertRecord(td->getRecordPage(), bkey40);
+
+
+	//string value50 = "50";
+	//string payload50 = "This is payload50";
+	//BTreeKey bkey50(value50);
+	//bkey50.setPayload(payload50);
+
+	//bt.insertRecord(td->getRecordPage(), bkey50);
+
+	//string value60 = "60";
+	//string payload60 = "This is payload60";
+	//BTreeKey bkey60(value60);
+	//bkey60.setPayload(payload60);
+
+	//bt.insertRecord(td->getRecordPage(), bkey60);
+
+
+	//string value70 = "70";
+	//string payload70 = "This is payload70";
+	//BTreeKey bkey70(value70);
+	//bkey70.setPayload(payload70);
+
+	//bt.insertRecord(td->getRecordPage(), bkey70);
+
+	//string value80 = "80";
+	//string payload80 = "This is payload80";
+	//BTreeKey bkey80(value80);
+	//bkey80.setPayload(payload80);
+
+	//bt.insertRecord(td->getRecordPage(), bkey80);
+
+
+	//string value35 = "35";
+	//string payload35 = "This is payload35";
+	//BTreeKey bkey35(value35);
+	//bkey35.setPayload(payload35);
+
+	//bt.insertRecord(td->getRecordPage(), bkey35);
+
+	//string value38 = "38";
+	//string payload38 = "This is payload38";
+	//BTreeKey bkey38(value38);
+	//bkey38.setPayload(payload38);
+
+	//bt.insertRecord(td->getRecordPage(), bkey38);
+
+	//
+	//
+	//string value39 = "39";
+	//string payload39 = "This is payload39";
+	//BTreeKey bkey39(value39);
+	//bkey39.setPayload(payload39);
+
+	//bt.insertRecord(td->getRecordPage(), bkey39);
+
+	//string pageContent = fm->readPage(4);
+	//BTreePage myBTreePage = BTreePage::deSerializePage(fm, sm, 4, pageContent);
+
+	//string value85 = "85";
+	//string payload85 = "This is payload85";
+	//BTreeKey bkey85(value85);
+	//bkey85.setPayload(payload85);
+
+	//bt.insertRecord(td->getRecordPage(), bkey85);
+
+	//string value72 = "72";
+	//string payload72 = "This is payload72";
+	//BTreeKey bkey72(value72);
+	//bkey72.setPayload(payload72);
+
+	//bt.insertRecord(td->getRecordPage(), bkey72);
+
+	//string value27 = "27";
+	//string payload27 = "This is payload27";
+	//BTreeKey bkey27(value27);
+	//bkey27.setPayload(payload27);
+
+	//bt.insertRecord(td->getRecordPage(), bkey27);
+
+	//string value15 = "15";
+	//string payload15 = "This is payload15";
+	//BTreeKey bkey15(value15);
+	//bkey15.setPayload(payload15);
+
+	//bt.insertRecord(td->getRecordPage(), bkey15);
+
+	//string value08 = "08";
+	//string payload08 = "This is payload08";
+	//BTreeKey bkey08(value08);
+	//bkey08.setPayload(payload08);
+
+	//bt.insertRecord(td->getRecordPage(), bkey08);
+
+	//string value88 = "88";
+	//string payload88 = "This is payload88";
+	//BTreeKey bkey88(value88);
+	//bkey88.setPayload(payload88);
+
+	//bt.insertRecord(td->getRecordPage(), bkey88);
 	return 0;
 }
 

@@ -13,7 +13,8 @@ int StorageManager::GiveMeFreePageNo() {
 		for (iter = page.begin(); iter != page.end() - 1; iter++) {
 			if ((*iter) != '1')  {			
 				int distance = std::distance(page.begin(), iter) ;
-				myFileManager->writeAt("1", StorageManager::MotherPage, distance);
+							
+				myFileManager->writeAt('1', StorageManager::MotherPage, distance);
 				return distance + 1;
 			}
 		}
@@ -36,5 +37,5 @@ bool StorageManager::FreePageNo(int pageNo) {
 	}
 
 	offset = offset - 1;
-	myFileManager->writeAt("0", InternalPageNo, offset);
+	myFileManager->writeAt('0', InternalPageNo, offset);
 }

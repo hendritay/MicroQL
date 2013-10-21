@@ -73,11 +73,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonUtility.h" />
     <ClInclude Include="Database\DeleteDefinition.h" />
+    <ClInclude Include="Database\InsertDefinition.h" />
     <ClInclude Include="Database\MQLColumn.h" />
     <ClInclude Include="Database\MQLCondition.h" />
     <ClInclude Include="Database\MQLTuple.h" />
@@ -102,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonUtility.cpp" />
+    <ClCompile Include="Database\InsertDefinition.cpp" />
     <ClCompile Include="database\TableDefinition.cpp" />
     <ClCompile Include="Database\TableDictionary.cpp" />
     <ClCompile Include="Database\TableResult.cpp" />

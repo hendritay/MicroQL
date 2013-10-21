@@ -1,8 +1,11 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "MQLColumn.h"
-#include "MQLCondition.h"
+#include "Database\MQLColumn.h"
+#include "Database\MQLCondition.h"
+#include "Database\TableDictionary.h"
+#include "Storage\BTree.h"
+
 
 /* 
      Insert employee (name, age) VALUES ("john", "10")
@@ -35,8 +38,8 @@ public:
 			
 	void addInsert(MQLCondition cond);
 
-	void execute();
+	void execute(TableDictionary *td, BTree *bTree);
 private:
 	string tableName;
-	vector<MQLCondition> InsertColumn;
+	map<string, MQLCondition> InsertColumn;
 };

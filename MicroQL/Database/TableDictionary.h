@@ -4,6 +4,7 @@
 #include "Database/TableDefinition.h"
 #include <map>
 #include <string>
+
 typedef map<string, pair<int, TableDefinition *>> DictionaryList;
 
 class TableDictionary {
@@ -15,14 +16,23 @@ public:
 		populatedTableList = false;
 	}
 
-	TableDefinition retrieveTable(string tableName);
+	TableDefinition retrieveTable(string tableName) {
+		TableDefinition td;
+		return td;
+	}
+
 	void storeTableToDictionary(TableDefinition *td);
-	bool tableExists(string &tableName);
+	bool tableExists(string &tableName) ;
 	// columnname must be unique through the entire database. 
 	bool columnExists(string columnName);
 
 	TableDefinition getTableDefinition(string tableName) {
-		return *dicitionaryList.find(tableName)->second.second;
+		if (!populatedTableList)
+			populateTableList();
+
+		pair<int, TableDefinition*> pair1 = dicitionaryList.find(tableName)->second;
+		TableDefinition td = *(pair1.second);
+		return td;
 	}
 
 	string getTableByColumnName(string columnName) {

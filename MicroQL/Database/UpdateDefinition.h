@@ -45,8 +45,12 @@ public:
 	
 	MQLCondition getCondition(int i);
 	
-	void addWhere(MQLCondition cond1);
-	void addSet(MQLColumn column);
+	void addWhere(MQLCondition cond1) {
+		whereColumn.push_back(cond1);
+	}
+	void addSet(MQLCondition cond) {
+		updateColumn.push_back(cond);
+	}
 
 	void execute();
 private:

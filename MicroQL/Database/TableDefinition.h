@@ -43,11 +43,18 @@ public:
 	}
 	void addColumn(MQLColumn &column){
 		columnList.push_back(column);
+
+		if (column.isPrimaryKey()) 
+			PrimaryKey = column;
 	}
 
 	void create();
-	string serialize();
+	ListChar serialize();
 	static TableDefinition * deSerialize(string &content);
+
+	MQLColumn getPrimaryKeyColumn() {
+		return PrimaryKey;
+	}
 
 	int getNoOfColumn() {
 		return columnList.size();
@@ -59,6 +66,10 @@ public:
 
 	int getRecordPage() {
 		return startRecordPageNo;
+	}
+
+	void setTableName(string table){
+		tableName = table;
 	}
 private:
 	string tableName;

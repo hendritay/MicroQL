@@ -6,10 +6,18 @@
 
 typedef vector<MQLTuple> TupleList;
 
-class TupleManager {
+class MQLTupleManager {
 public :
-	void addColumnList(MQLColumn);
+	void addColumnList(MQLColumn column) {
+		columnList.push_back(column);
+		columnOrder[column.getColumnName()] = columnList.size() - 1;
+	}
+
+	int getColumnNo(string columnName) {
+		
+	}
 private:
 	vector<MQLColumn> columnList;
+	map<string, int> columnOrder;
 	TupleList tupleList;
 };

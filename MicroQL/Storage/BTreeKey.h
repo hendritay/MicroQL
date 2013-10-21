@@ -2,6 +2,7 @@
 #include "Database\MQLColumn.h"
 #include <string>
 #include "CommonUtility.h"
+#include "Storage\FileManager.h"
 
 /*
   
@@ -14,6 +15,14 @@
 class BTreeKey {
 public:
 	BTreeKey() {
+				value = ""; 
+		rightChildPage = 0;
+		payloadOffSet =0;
+		leftChildPage = 0;
+		mOverFlowPage  = 0;
+	}
+	void setValue(string &pValue) {
+		value = pValue;
 	}
 	BTreeKey( string &pValue) {
 	//	column = pColumn;
@@ -32,6 +41,25 @@ public:
 		leftChildPage = left;
 	}
 
+	
+	void setRightChildPageAndWrite(FileManager *fm, int pageNo, int right) {
+		if (myKeyOffSet < 0 || myKeyOffSet > FileManager::PageSize) {
+			throw new exception("Not valid keyoffset");
+		}
+		// skip the no of chars and chars itself
+		fm->writeAt(CommonUtility::convertShortTo2Bytes(right) , pageNo, myKeyOffSet+ value.size() + 4);		
+		setRightPage(right);		
+	}
+
+	void setLeftChildPageAndWrite(FileManager *fm, int pageNo, int left) {
+		if (myKeyOffSet < 0 || myKeyOffSet > FileManager::PageSize) {
+			throw new exception("Not valid keyoffset");
+		}
+		// skip the no of chars and chars itself
+		fm->writeAt(CommonUtility::convertShortTo2Bytes(left), pageNo, myKeyOffSet+ value.size() + 2);		
+		setLeftChildPage(left);		
+	}
+
 	void setPayload(string &ppayLoad) {
 		payLoad = ppayLoad; // hardwork does pay off
 	}
@@ -40,20 +68,22 @@ public:
 		return serialize().size() + serializePayload().size();
 	}
 
-	string serializePayload() {
-		string result;
-		result.append(CommonUtility::convertShortTo2Bytes(payLoad.size()));
-		result.append(payLoad);
+	ListChar serializePayload() {
+		ListChar result;
+		CommonUtility::appendIntToList(result, payLoad.size());
+
+		CommonUtility::convertStringToList(payLoad, result);
 		return result;
 
 	}
-	string serialize() {
-		string result;
-		result.append(CommonUtility::convertShortTo2Bytes(value.size()));
-		result.append(value);
-		result.append(CommonUtility::convertShortTo2Bytes(leftChildPage));
-		result.append(CommonUtility::convertShortTo2Bytes(rightChildPage));
-		result.append(CommonUtility::convertShortTo2Bytes(payloadOffSet));
+	ListChar serialize() {
+		ListChar result;
+		CommonUtility::appendIntToList(result, value.size());
+		CommonUtility::convertStringToList(value, result);
+		CommonUtility::appendIntToList(result, leftChildPage);
+		CommonUtility::appendIntToList(result, rightChildPage);
+		CommonUtility::appendIntToList(result, payloadOffSet);
+		
 		return result;
 	}
 
@@ -83,6 +113,9 @@ public:
 		return btreek;
 	}
 
+	string getPayload() {
+		return payLoad;
+	}
 	int getPayloadOffSet() {
 		return payloadOffSet;
 	}
@@ -100,6 +133,8 @@ public:
 	}*/
 
 	void setPayloadOffset(int offset) {
+		if (offset > FileManager::PageSize)
+			throw new exception("invalid offset");
 		payloadOffSet = offset;
 	}
 

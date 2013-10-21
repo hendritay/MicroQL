@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../MainType.h"
+#include "MainType.h"
 #include "CommonUtility.h"
 using namespace std;
 
@@ -15,7 +15,10 @@ public:
 	MQLColumn(){
 	}
 	MQLColumn(string &name, ColumnType ct){
-		MQLColumn(name, ct,1000, false);
+		columnName = name;
+		columnSize = 0;
+		columnType = ct;
+		primaryKey = false;
 	}
     MQLColumn(string &name, ColumnType ct, int size, bool isPrimaryKey) {
 	    columnName = name;
@@ -36,18 +39,18 @@ public:
 		return columnType;
 	}
 
-	string serialize() {
-		string result;
-		result.append(CommonUtility::convertShortTo2Bytes(columnName.size()));
-		result.append(columnName);
-		result.append(CommonUtility::convertShortTo2Bytes(columnType));
-		result.append(CommonUtility::convertShortTo2Bytes(columnSize));
+	ListChar serialize() {
+		ListChar resultList;
+		CommonUtility::appendIntToList(resultList, columnName.size());
+		CommonUtility::appendStringToList(resultList,columnName);
+		CommonUtility::appendIntToList(resultList, columnType);
+		CommonUtility::appendIntToList(resultList, columnSize);
 		if (primaryKey) 
-			result.append("1");
+			resultList.insert(resultList.end(), '1');
 		else
-			result.append("0");
+			resultList.insert(resultList.end(), '0');
 
-		return result;
+		return resultList;
 	}
 
 	void setPrimaryKey(bool primary){

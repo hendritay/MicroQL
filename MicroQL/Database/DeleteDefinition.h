@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "MQLColumn.h"
-#include "MQLCondition.h"
+#include "Database\MQLColumn.h"
+#include "Database\MQLCondition.h"
 
 /* 
      Delete employee 
@@ -27,6 +27,9 @@ using namespace std;
 
 class DeleteDefinition {
 public:
+	DeleteDefinition() {
+		tableName = "";
+	}
 	void setName(string name) {
 		tableName = name;
 	}
@@ -35,7 +38,9 @@ public:
 	
 	MQLCondition getCondition(int i);
 	
-	void addWhere(MQLCondition cond1);
+	void addWhere(MQLCondition cond1) {
+		whereColumn.push_back(cond1);
+	}
 
 	void execute();
 private:

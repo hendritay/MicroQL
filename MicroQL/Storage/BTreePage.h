@@ -1,5 +1,8 @@
+#pragma once
 #include <map>
 #include <string>
+#include <list>
+
 #include "Storage\PageManager.h"
 #include "Storage\BTreeKey.h"
 #include "Storage\FileManager.h"
@@ -13,6 +16,15 @@ typedef map<string, BTreeKey> BKeyList;
 class BTreePage {
 public :
 
+	BTreeKey getBKey(int index) {
+		BKeyList::iterator iter = listKey.begin();
+		advance(iter, index);
+		return iter->second;
+	}
+
+	int getKeySize() {
+		return listKey.size();
+	}
 
 	BTreePage(FileManager *fm, StorageManager *sm ) {
 		myFileManager = fm;
@@ -21,8 +33,14 @@ public :
 		mNextSibling = 0;
 		mParent = 0;
 	}
+
 	void setParent(int PageNo) {
 		mParent = PageNo;
+	}
+
+	void setParentAndWrite(int pageNo) {
+		mParent = pageNo;
+		myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(pageNo), myPage, ParentPosition);
 	}
 
 	void setNextSibling(int SiblingPageNo) {
@@ -70,11 +88,15 @@ public :
 		int toSkip = 0;
 
 		string content = page.substr(currPosition);
-		map<string, BTreeKey> *listOfKey = new map<string, BTreeKey> ();
+
 
 		for (int i = 0; i < noOfKeys; i++) {			
+
 			BTreeKey bTree = BTreeKey::deSerialize(content, toSkip);
+			bTree.setKeyOffset(currPosition);
+
 			content.erase(content.begin(), content.begin() + toSkip);
+			currPosition += toSkip;
 			// get or no get the payload, that's the question
 			if (page[bTree.getPayloadOffSet()]  == PageManager::NORMALROW ) { //
 				int NoOfChars = CommonUtility::convert2BytesToInt(page.substr(bTree.getPayloadOffSet() + 1, NoOfBytes));
@@ -117,7 +139,8 @@ public :
 		secondFreeOffset = second;
 	}
 
-	
+
+
 
 	// find intermediate will return you the page 
 	// however you need to test the value to see if to use the right page of left page. 
@@ -137,17 +160,15 @@ public :
 		while (true) {
 			iterNext = iter;
 			iterNext++;
-			if (iter->first.compare(target) < 0 &&  iterNext->first.compare(target) > 0) {
+			if (iterNext == listKey.end()) {
+				return iter->second;
+			}else if (iter->first.compare(target) < 0 &&  iterNext->first.compare(target) > 0) {
 				return iterNext->second;
-			} else 	if (iterNext == listKey.end()) {
-				return iterNext->second;
-			}
+			} 
+			iter++;
 		}
 	}
 
-	int getKeySize() {
-		return listKey.size();
-	}
 
 	int getFirstFreeOffset() {
 		return firstFreeOffset;
@@ -157,8 +178,49 @@ public :
 		return secondFreeOffset;
 	}
 
+
+
 	// staging for adding into Page STring
 	void append(BTreeKey bKey) {
+		map<string, BTreeKey>::iterator iter = listKey.begin(); 		
+		map<string, BTreeKey>::iterator iterNext;
+
+		if (listKey.size() == 1) {
+			if (iter->first.compare(bKey.getValue()) > 0) {
+				iter->second.setLeftChildPageAndWrite(myFileManager, myPage,  bKey.getRightChild());
+			} else 
+				iter->second.setRightChildPageAndWrite(myFileManager, myPage, bKey.getLeftChildPage());
+			/*
+			30
+
+			10 20 25 28 29       40 50
+			(Promote 25, so 30 should inherit from 25)
+			*/
+		} else if(listKey.size() > 1) {
+
+			if (iter->first.compare(bKey.getValue()) > 0) {
+				iter->second.setLeftChildPageAndWrite(myFileManager, myPage,  bKey.getRightChild());
+
+			} else {
+
+
+
+				while (true) { //(see above)
+					iterNext = iter;
+					iterNext++;
+					if (iterNext == listKey.end()) {
+						iter->second.setRightChildPageAndWrite(myFileManager, myPage, bKey.getLeftChildPage());
+						break;
+					}else if (iter->first.compare(bKey.getValue()) < 0 &&  iterNext->first.compare(bKey.getValue()) > 0) {
+						iter->second.setRightChildPageAndWrite (myFileManager, myPage, bKey.getLeftChildPage());
+						iterNext->second.setLeftChildPageAndWrite(myFileManager, myPage, bKey.getRightChild());
+						break;
+					} 
+					iter++;
+				}
+			}
+		}
+
 		listKey[bKey.getValue()] = bKey; 
 		newKey = &(listKey.find(bKey.getValue())->second);
 		IsNewKey =true;
@@ -171,21 +233,28 @@ public :
 
 	void rewriteToNewPage(int pageNo) {
 
+		if (pageNo == 4) {
+			int a=0;
+		}
+
 		int currPosition = 0;
-		string page; 
-		string pageEnd;
+		list<char> page; 
+		list<char> pageEnd;
+
+		setMyPage(pageNo);
 
 		// Write Page Type
 		page.push_back(PageManager::RECORDPAGE);
 
 		//Write no key ;
-		page.append(CommonUtility::convertShortTo2Bytes (listKey.size()));
+		CommonUtility::appendIntToList(page, listKey.size());
 
 		//Write parent;		
-		page.append(CommonUtility::convertShortTo2Bytes (mParent));
+		CommonUtility::appendIntToList(page, mParent);
+
 
 		// write sibling -- MAKE SURE Sibling is properly set. 
-		page.append(CommonUtility::convertShortTo2Bytes (mNextSibling));
+		CommonUtility::appendIntToList(page, mNextSibling);
 
 
 		BKeyList::iterator iter;
@@ -197,30 +266,55 @@ public :
 		secondFreeOffset =  FileManager::PageSize - 1;
 		for (iter = listKey.begin(); iter != listKey.end(); iter++) {
 			// update the first free offset
-			string key = iter->second.serialize();
-			string payload = iter->second.serializePayload ();
 
-			firstFreeOffset += key.size();			
+			// update its son about the new page
+			if (iter->second.getLeftChildPage() != 0) {
+				myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(pageNo), iter->second.getLeftChildPage(), ParentPosition);
+
+				BKeyList::iterator iter1 = iter;
+				iter1++;
+				if (iter1 == listKey.end()) {
+					myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(pageNo), iter->second.getRightChild(), ParentPosition);
+				}
+			}
+
+			ListChar payload = iter->second.serializePayload();
+
 
 			if (payload.size() > MAX_CHARS_IN_SAME_PAGE) {
 
 				// update offset
 				secondFreeOffset -= 3; 
 				// this order is correct;
-				pageEnd.insert(0, CommonUtility::convertShortTo2Bytes(iter->second.getOverFlowPage()));
+				pageEnd.insert(pageEnd.begin(), payload.begin(), payload.end());
 				pageEnd.insert(pageEnd.begin(), PageManager::OVERFLOWROW);
 
 			} else {
 				secondFreeOffset -= payload.size();
 				secondFreeOffset--; 
 				// the order is correct!
-				pageEnd.insert(0, payload);
-				pageEnd.insert(payload.begin(), PageManager::NORMALROW);		
+				pageEnd.insert(pageEnd.begin(), payload.begin(), payload.end());
+				pageEnd.insert(pageEnd.begin(), PageManager::NORMALROW);		
 			}
+
+			iter->second.setPayloadOffset(secondFreeOffset);
+			ListChar key = iter->second.serialize();
+			firstFreeOffset += key.size();						
+			page.insert(page.end(), key.begin(), key.end());
 		}
 
-		page.insert(FirstFreePosition, CommonUtility::convertShortTo2Bytes(firstFreeOffset));
-		page.insert(SecondFreePosition, CommonUtility::convertShortTo2Bytes(secondFreeOffset));
+		ListChar::const_iterator iter1 = page.begin();
+		advance(iter1, FirstFreePosition);
+
+		ListChar first = CommonUtility::convertShortTo2Bytes(firstFreeOffset);
+		ListChar second = CommonUtility::convertShortTo2Bytes(secondFreeOffset);
+
+		page.insert(iter1,  first.begin(), first.end());
+
+		iter1 = page.begin();
+		advance(iter1, SecondFreePosition);
+
+		page.insert(iter1, second.begin(), second.end());
 
 		myFileManager->writeAt(page, pageNo, 0);
 		myFileManager->writeAt(pageEnd, pageNo, secondFreeOffset);
@@ -262,6 +356,8 @@ public :
 
 	}
 
+
+
 	bool mustSplit() {
 
 		if (!IsNewKey) 
@@ -283,24 +379,25 @@ public :
 		if (!IsNewKey) 
 			return;
 
+
 		// Increase Key 
 		myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(listKey.size()), myPage, NoKeyPosition);
-	
+
 		// getPayload first
-		string payload = newKey->serializePayload(); 
+		ListChar payload = newKey->serializePayload(); 
 		if (payload.size() > MAX_CHARS_IN_SAME_PAGE) {
 			// write it overflow page;
 			// request new page for overflow string 
 			int requestNewPage = myStorageManager->GiveMeFreePageNo();
-			string payload = newKey->serializePayload();
+			ListChar payload = newKey->serializePayload();
 			payload .insert(payload.begin(), PageManager::OVERFLOWPAGE);
 			myFileManager->writeAt(payload, requestNewPage, 0);
 
 			// update the record page
 			secondFreeOffset -= 3; 
-			string payloadOverflow;
+			ListChar payloadOverflow;
 			payloadOverflow.push_back(PageManager::OVERFLOWROW);
-			payloadOverflow.append(CommonUtility::convertShortTo2Bytes(requestNewPage));			
+			CommonUtility::appendIntToList(payloadOverflow, requestNewPage);			
 
 			newKey->setPayloadOffset(secondFreeOffset);
 			newKey->setOverFlowPage(requestNewPage);
@@ -309,17 +406,22 @@ public :
 			myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(secondFreeOffset), myPage, SecondFreePosition);
 
 		} else {
+
 			secondFreeOffset -= payload.size();
 			secondFreeOffset--; 
 			newKey->setPayloadOffset(secondFreeOffset);
-			payload.insert(payload.begin(), PageManager::NORMALROW);
+			payload.push_front(PageManager::NORMALROW);
 			// write the record
 			myFileManager->writeAt(payload, myPage, secondFreeOffset);
 			// update the offset 
 			myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(secondFreeOffset), myPage, SecondFreePosition);
+
 		}
 
-		string key = newKey->serialize();
+
+
+
+		ListChar key = newKey->serialize();
 
 		// write the actual key 
 		myFileManager->writeAt(key, myPage, firstFreeOffset);
@@ -328,6 +430,7 @@ public :
 		firstFreeOffset += key.size();
 		myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(firstFreeOffset), myPage, FirstFreePosition);
 
+	
 		// write the payload 
 		// complete 
 	}
@@ -351,8 +454,9 @@ private:
 	static const int NoKeyPosition = 1; // No Of Keys stored at offset 1
 	static const int FirstFreePosition = 7;
 	static const int SecondFreePosition = 9;
+	static const int ParentPosition = 3;
 
-	static const int MAX_KEY = 4;
+	static const int MAX_KEY = 8;
 	static const int MIN_KEY = 4; 
 	int myPage;
 	int mParent;

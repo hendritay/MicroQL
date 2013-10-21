@@ -37,7 +37,7 @@ std::vector<std::string> split(const std::string &inputString, char delimiter) {
     return tokens;
 }
 
-bool replaceSubstring(string& inputString, const string& replaceTarget, const string& replaceValue){
+bool Parser::replaceSubstring(string& inputString, const string& replaceTarget, const string& replaceValue){
 	int loc = -1;
 	int size = replaceTarget.size();
 
@@ -48,59 +48,63 @@ bool replaceSubstring(string& inputString, const string& replaceTarget, const st
 
 	return true;
 }
-bool preprocessCommand(string command){
-
-	replaceSubstring(command, "  ", " ");
-	replaceSubstring(command, "( ", "(");
-	replaceSubstring(command, " (", "(");
-	replaceSubstring(command, ") ", ")");
-	replaceSubstring(command, " )", ")");
-	replaceSubstring(command, " ;", ";");
-	replaceSubstring(command, "  =", "=");
-	replaceSubstring(command, "= ", "=");
-	replaceSubstring(command, "  '", "'");
-	//replaceSubstring(command, "' ", "'");
-	trim(command);
-	
-	//cout << "last char: " << command.substr(command.length() -1, 1) << endl;
-
+bool Parser::preCheck(string command){
 	if (command.substr(command.length() -1, 1) != ";")
 		return false;
-}
-bool parse(string command){
-
-	replaceSubstring(command, "  ", " ");
-	replaceSubstring(command, "( ", "(");
-	replaceSubstring(command, " (", "(");
-	replaceSubstring(command, ") ", ")");
-	replaceSubstring(command, " )", ")");
-	replaceSubstring(command, " ;", ";");
-	replaceSubstring(command, "  =", "=");
-	replaceSubstring(command, "= ", "=");
-	replaceSubstring(command, "  '", "'");
-	//replaceSubstring(command, "' ", "'");
-	trim(command);
-	
-	//cout << "last char: " << command.substr(command.length() -1, 1) << endl;
-
-	if (command.substr(command.length() -1, 1) != ";")
-		return false;
-
-	if (trim(command).find("CREATE") != string::npos){
-		return parseCreateCmd(command);
-	}else if (trim(command).find("DELETE FROM") != string::npos){
-		return parseDeleteCmd(command);
-	}else if (trim(command).find("UPDATE") != string::npos){
-		return parseUpdateCmd(command);
-	}else if (trim(command).find("INSERT INTO") != string::npos){
-		return parseInsertCmd(command);
-	}else
-		return false;
-
 	return true;
 }
+string Parser::preprocessCommand(string command){
 
-string getTableName(string tableInfo, string command){
+	replaceSubstring(command, "  ", " ");
+	replaceSubstring(command, "( ", "(");
+	replaceSubstring(command, " (", "(");
+	replaceSubstring(command, ") ", ")");
+	replaceSubstring(command, " )", ")");
+	replaceSubstring(command, " ;", ";");
+	replaceSubstring(command, "  =", "=");
+	replaceSubstring(command, "= ", "=");
+	replaceSubstring(command, "  '", "'");
+	//replaceSubstring(command, "' ", "'");
+	replaceSubstring(command, ";", "");
+	trim(command);
+	return command;
+	//cout << "last char: " << command.substr(command.length() -1, 1) << endl;
+
+}
+//bool parse(string command){
+//
+//	replaceSubstring(command, "  ", " ");
+//	replaceSubstring(command, "( ", "(");
+//	replaceSubstring(command, " (", "(");
+//	replaceSubstring(command, ") ", ")");
+//	replaceSubstring(command, " )", ")");
+//	replaceSubstring(command, " ;", ";");
+//	replaceSubstring(command, " =", "=");
+//	replaceSubstring(command, "= ", "=");
+//	replaceSubstring(command, "  '", "'");
+//	//replaceSubstring(command, "' ", "'");
+//	trim(command);
+//	
+//	//cout << "last char: " << command.substr(command.length() -1, 1) << endl;
+//
+//	if (command.substr(command.length() -1, 1) != ";")
+//		return false;
+//
+//	if (trim(command).find("CREATE") != string::npos){
+//		return parseCreateCmd(command);
+//	}else if (trim(command).find("DELETE FROM") != string::npos){
+//		return parseDeleteCmd(command);
+//	}else if (trim(command).find("UPDATE") != string::npos){
+//		return parseUpdateCmd(command);
+//	}else if (trim(command).find("INSERT INTO") != string::npos){
+//		return parseInsertCmd(command);
+//	}else
+//		return false;
+//
+//	return true;
+//}
+
+string Parser::getTableName(string tableInfo, string command){
 
 	string commandToFind = command;
 	
@@ -112,15 +116,15 @@ string getTableName(string tableInfo, string command){
 		return "NULL";
 }
 
-string getPriKey(string priKeyInfo){
-	int removeDelimiters = 4; //());
+string Parser::getPriKey(string priKeyInfo){
+	int removeDelimiters = 3; //())
 	int removeOpenBracket = 1; //(
 	string priKey = priKeyInfo.substr(removeOpenBracket,priKeyInfo.length()-removeDelimiters);
 	return priKey;
 	//cout<< priKey <<endl;
 }
 
-bool getAndAddCol(string colInfo, string priKey, TableDefinition &td){
+bool Parser::getAndAddCol(string colInfo, string priKey, TableDefinition &td){
 
 	vector<string> columnData = split(colInfo, ',');
 	vector<string> columns;
@@ -161,14 +165,15 @@ bool getAndAddCol(string colInfo, string priKey, TableDefinition &td){
 	}
 }
 
-TableDefinition* parseCreateCmd(string command){
+TableDefinition* Parser::parseCreateCmd(string sqlCommand){
 	vector <string> createTableInformation;
 	string tableInformation, columnInformation, priKeyInformation, tableName;
 	string findPriKey = "PRIMARY KEY";
-	bool success = preprocessCommand(command);
+	bool success = preCheck(sqlCommand);
 	if(!success){
 		return NULL;
 	}
+	string command = preprocessCommand(sqlCommand);
 	int colNamePos = command.find("(");
 	
 	tableInformation = command.substr(0, colNamePos);
@@ -205,18 +210,26 @@ TableDefinition* parseCreateCmd(string command){
 	}
 }
 
-DeleteDefinition* parseDeleteCmd(string command){
-	string tableInformation = command.substr(0, command.find("WHERE "));
-	string tableName = getTableName(tableInformation, "DELETE FROM ");
+DeleteDefinition* Parser::parseDeleteCmd(string sqlCommand){
 	vector<pair<string, string>> conditionClauses;
 	vector<string> splitResults;
-
-	bool success = preprocessCommand(command);
+	DeleteDefinition *delDef = new DeleteDefinition() ;
+	string tableName;
+	bool success = preCheck(sqlCommand);
 	if(!success){
 		return NULL;
 	}
+	string command = preprocessCommand(sqlCommand);
+	if(command.find("WHERE ")!= -1){
+	string tableInformation = command.substr(0, command.find("WHERE "));
+	tableName = getTableName(tableInformation, "DELETE FROM ");
+	}
+	else{
+		tableName = getTableName(0, "DELETE FROM ");
+		delDef->setName(tableName);
+		return delDef;
+	}
 
-	DeleteDefinition *delDef = new DeleteDefiniton();
 	delDef->setName(tableName);
 
 	//cout << "table name: " << tableName << endl;
@@ -224,7 +237,7 @@ DeleteDefinition* parseDeleteCmd(string command){
 	string conditions = command.substr(command.find("WHERE ") + 6, command.length() - command.find("WHERE ") + 7);
 	//cout << "condition: " << conditions << endl;
 
-	replaceSubstring(conditions, ";", "");
+	//replaceSubstring(conditions, ";", "");
 	replaceSubstring(conditions, " AND ", "|");
 	vector<string> tokens = split(conditions, '|');
 
@@ -257,10 +270,14 @@ DeleteDefinition* parseDeleteCmd(string command){
 	return delDef;
 }
 
-UpdateDefinition* parseUpdateCmd(string command){
+UpdateDefinition* Parser::parseUpdateCmd(string sqlCommand){
 	vector<pair<string, string>> updateInfoClauses, conditionClauses;
 	vector<string> splitResults, splitUpdateInfo, updateInfoDetails, splitConditions, conditionDetails;
-
+	bool success = preCheck(sqlCommand);
+	if(!success){
+		return NULL;
+	}
+	string command = preprocessCommand(sqlCommand);
 	string tableInformation = command.substr(0, command.find("SET "));
 	string tableName = getTableName(tableInformation, "UPDATE ");
 
@@ -277,52 +294,52 @@ UpdateDefinition* parseUpdateCmd(string command){
 	replaceSubstring(command, " WHERE ", "|");
 	replaceSubstring(command, ", ", ",");
 	replaceSubstring(command, " ,", ",");
-	replaceSubstring(command, ";", "");
+	//replaceSubstring(command, ";", "");
 
 	splitResults = split(command, '|');
 
 	if (splitResults.size() < 2)
 		return NULL;
-	else if (splitResults.size() == 2 || splitResults.size() == 3){ 
-		//cout << "processing conditions and update information..." << endl;
-
+	else{
 		string updateInformation = splitResults[1];
 		splitUpdateInfo = split(updateInformation, ',');
-
+			
 		//cout << splitUpdateInfo.size() << endl;
-
 		for (vector<string>::size_type counter = 0; counter < splitUpdateInfo.size(); counter++){
-			//cout << "splitting update information..." << endl;
+		//cout << "splitting update information..." << endl;
 			updateInfoDetails = split(splitUpdateInfo[counter], '=');
 			if (updateInfoDetails.size() != 2)
 				return NULL;
 			updateInfoClauses.push_back(make_pair(updateInfoDetails[0], updateInfoDetails[1]));
 		}
-
 		for (vector<pair<string, string>>::size_type counter = 0; counter < updateInfoClauses.size(); counter++){
-
-		col1 = MQLColumn(updateInfoClauses[counter].first, CT_VARCHAR);
-		col2 = MQLColumn(updateInfoClauses[counter].second, CT_VARCHAR);
-		// ask mr hendri to resolve
-		//string oper = "=";
-		//upDef->addSet(col1, oper, col2);
+			MQLColumn col1(updateInfoClauses[counter].first, CT_VARCHAR);	
+			MQLColumn col2(updateInfoClauses[counter].second, CT_VARCHAR);
+			string oper = "=";
+			MQLCondition cond(col1, oper, col2);
+			upDef->addSet(cond);
 
 		//cout << "update info clauses: " << updateInfoClauses[counter].first << " VS " << updateInfoClauses[counter].second << endl;
 		}
-
 		if (splitResults.size() == 3){
+			replaceSubstring(splitResults[2], " AND ", "|");
 			string conditions = splitResults[2];
-			splitConditions = split(conditions, ',');
+			splitConditions = split(conditions, '|');
 			for (vector<string>::size_type counter = 0; counter < splitConditions.size(); counter++){
-				conditionDetails = split(splitUpdateInfo[counter], '=');
+				conditionDetails = split(splitConditions[counter], '=');
 				if (conditionDetails.size() != 2)
 					return NULL;
+				if (!(conditionDetails[1].find("'") != string::npos && (conditionDetails[1].find_last_of("'") != conditionDetails[1].find("'") ))){
+				return NULL;
+				}
+				replaceSubstring(conditionDetails[1], "'", " ");
+				conditionDetails[1] = trim(conditionDetails[1]);
 				conditionClauses.push_back(make_pair(conditionDetails[0], conditionDetails[1]));
 			}
 
 			for (vector<pair<string, string>>::size_type counter = 0; counter < conditionClauses.size(); counter++){
-				col1 = MQLColumn(conditionClauses[counter].first, CT_VARCHAR);
-				col2 = MQLColumn(conditionClauses[counter].second, CT_CONSTANT_STRING);
+				MQLColumn col1 (conditionClauses[counter].first, CT_VARCHAR);
+				MQLColumn col2 (conditionClauses[counter].second, CT_CONSTANT_STRING);
 				string oper ="="; 
 				MQLCondition cond(col1, oper, col2);
 				upDef->addWhere(cond);
@@ -331,19 +348,19 @@ UpdateDefinition* parseUpdateCmd(string command){
 		}
 
 		return upDef;
-	}else
-		return NULL;
+	}
 }
 
-InsertDefinition* parseInsertCmd(string command){
-	vector<pair<string, string>> insertClauses;
 
-	bool success = preprocessCommand(command);
+InsertDefinition* Parser::parseInsertCmd(string sqlCommand){
+	vector<pair<string, string>> insertClauses;
+	bool success = preCheck(sqlCommand);
 	if(!success){
 		return NULL;
 	}
+	string command = preprocessCommand(sqlCommand);
 	string tableInformation = command.substr(0, command.find("("));
-	string tableName = getTableName(tableInformation, "INSERT INTO");
+	string tableName = getTableName(tableInformation, "INSERT INTO ");
 	InsertDefinition *insDef = new InsertDefinition();
 	insDef->setName(tableName);
 
@@ -381,7 +398,7 @@ InsertDefinition* parseInsertCmd(string command){
 
 	for (vector<pair<string, string>>::size_type counter = 0; counter < insertClauses.size(); counter++){
 		
-		MQLColumn col1(insertClauses[counter].first, VT_VARCHAR);
+		MQLColumn col1(insertClauses[counter].first, CT_VARCHAR);
 		MQLColumn col2(insertClauses[counter].second, CT_CONSTANT_STRING);
 		string oper = "=";
 		MQLCondition set(col1, oper, col2);

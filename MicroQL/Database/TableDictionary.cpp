@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "CommonUtility.h"
-#include "TableDictionary.h"
-#include "TableDefinition.h"
+#include "Database\TableDictionary.h"
+#include "Database\TableDefinition.h"
 #include "Storage\BTree.h"
 
 void TableDictionary::storeTableToDictionary(TableDefinition *td) {
@@ -27,9 +27,11 @@ void TableDictionary::storeTableToDictionary(TableDefinition *td) {
 	}
 
 	string tableName = td->getTableName();
-	string payload = CommonUtility::convertShortTo2Bytes(tableName.size());
-	payload.append(tableName);
-	payload.append(CommonUtility::convertShortTo2Bytes(columnPage));
+	ListChar payload;
+	CommonUtility::appendIntToList(payload, tableName.size());
+	CommonUtility::appendStringToList(payload, tableName);
+	CommonUtility::appendIntToList(payload, columnPage);
+
 
 	myFile->writeAt(payload, StorageManager::DictionaryPage, currPosition);
 	myFile->writeAt(td->serialize(), columnPage, 0);
@@ -113,6 +115,7 @@ void TableDictionary::populateTableList() {
 			string pageContent = myFile->readPage(iter->second.first);
 
 			TableDefinition *td = TableDefinition::deSerialize(pageContent);
+			td->setTableName(iter->first);
 			iter->second.second = td;
 			addColumnToColumnList(td);
 		}

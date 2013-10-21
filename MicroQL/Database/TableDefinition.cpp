@@ -12,20 +12,20 @@ NumberOfChars = 2 bytes
 NumberOfColumn = 2 Bytes;
 ColumnType = 2 bytes
 */
-string TableDefinition::serialize() {
-	string result;
+ListChar TableDefinition::serialize() {
+	ListChar resultList;
+
 	// No Of Column;
-	result.push_back(PageManager::TABLEPAGE);
-	result.append(CommonUtility::convertShortTo2Bytes(columnList.size()));
-	result.append(CommonUtility::convertShortTo2Bytes(startRecordPageNo));
-	
-
+	resultList.push_back(PageManager::TABLEPAGE);
+	CommonUtility::appendIntToList (resultList, columnList.size());
+	CommonUtility::appendIntToList (resultList, startRecordPageNo);	
 	ColumnList::iterator iter;
-
-	for (iter = columnList.begin(); iter != columnList.end(); iter++) {
-		result.append(iter->serialize());
+	
+	
+	for (iter = columnList.begin(); iter != columnList.end(); iter++) {		
+		CommonUtility::appendList(resultList, iter->serialize());
 	}
-	return result;
+	return resultList;
 }
 
 TableDefinition * TableDefinition::deSerialize(string &page) {
@@ -72,5 +72,5 @@ TableDefinition * TableDefinition::deSerialize(string &page) {
 		 td->addColumn(column);
 	}
 
-	
+	return td;
 }
