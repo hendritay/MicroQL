@@ -121,6 +121,7 @@
     <ClCompile Include="Storage\FileManager.cpp" />
     <ClCompile Include="Storage\PageManager.cpp" />
     <ClCompile Include="Storage\StorageManager.cpp" />
+    <ClCompile Include="Testing.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

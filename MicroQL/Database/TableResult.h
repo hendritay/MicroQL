@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <iostream>
+
 #include "Storage\BTree.h"
 
 #include "Database\MQLColumn.h"
@@ -30,7 +32,7 @@ public:
 
 		vector<MQLCondition>::iterator iter; 
 
-		for (iter = condition.begin(); iter != condition.end(); iter) {
+		for (iter = condition.begin(); iter != condition.end(); iter++) {
 			tm->addConditionColumn(*iter);
 		}
 		
@@ -42,7 +44,7 @@ public:
 		for (int i = 0; i < sizeOfTM; i++) {
 			exists = false;
 			for (iterCol = column.begin(); iterCol != column.end(); iterCol++) {
-				if (iterCol->getColumnName().compare(tm->getColumnAt(i).getColumnName()))  {
+				if (iterCol->getColumnName().compare(tm->getColumnAt(i).getColumnName()) == 0)  {
 					exists = true;
 					break;
 				}
@@ -58,7 +60,7 @@ public:
 
 			
 
-	TableResult merge(TableResult *tb, TableResult *tb2) {
+	static TableResult merge(TableResult *tb, TableResult *tb2, TableDictionary *tableDict, BTree *myBTree) {
 		TableResult tr(tableDict, myBTree);
 		tr.addTupleManagerDef(tb->getTupleManager());
 		tr.addTupleManagerDef(tb2->getTupleManager());
@@ -79,6 +81,11 @@ public:
 		MQLTupleManager *tm2 = tb2->getTupleManager();		
 
 		MQLTuple td = MQLTupleManager::mergeTuple(tm1, rowIndex1, tm2, rowIndex2);
+
+		if (td.getNoColumn() != tm->getNoOfColumn()) {
+			cout <<"Column of Tuple Manager don't match with tb1 and tb2";
+			cout << "Didn't add";
+		}
 		
 		tm->addTuple(td);
 	}
@@ -89,7 +96,7 @@ protected:
 	}
 	
 	void addTupleManagerDef(MQLTupleManager *pTM) {
-		int size = tm->getNoOfColumn();
+		int size = pTM->getNoOfColumn();
 
 		for (int i = 0; i < size; i++) {
 			tm->addColumnList(pTM->getColumnAt(i));

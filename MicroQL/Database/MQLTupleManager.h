@@ -54,13 +54,13 @@ public :
 		for (iter = columnNo.begin(); iter != columnNo.end(); iter++) {
 			
 			if (iterCond->getColumn2().getColumnType() == CT_CONSTANT_STRING) {
-				if (!tp.getValueAt(*iter).compare(iterCond->getColumn2().getColumnName())) {
+				if (tp.getValueAt(*iter).compare(iterCond->getColumn2().getColumnName()) != 0) {
 					return false;
 				}
 			} else {
 				int columnNo = getColumnNo(iterCond->getColumn2().getColumnName());
 
-				if (!tp.getValueAt(*iter).compare(tp.getValueAt(columnNo)))
+				if (tp.getValueAt(*iter).compare(tp.getValueAt(columnNo)) != 0)
 					return false;
 			}
 	
@@ -82,6 +82,9 @@ public :
 		for (iter = tupleList.begin(); iter != tupleList.end(); iter++) {
 			iter->removeValueAt(i);
 		}
+
+		columnList.erase(columnList.begin() + i);
+
 	}
 
 	static MQLTuple mergeTuple(MQLTupleManager *tm1, int index1, MQLTupleManager *tm2, int index2) {

@@ -49,7 +49,7 @@ public:
 		for (int i =0 ; i < NoOfColumn; i++) {
 			noChars =  CommonUtility::convert2BytesToInt(content.substr(currPosition, NoOfBytes));
 			currPosition += NoOfBytes;
-			tuple.addValue(content.substr(currPosition, currPosition + noChars));
+			tuple.addValue(content.substr(currPosition, noChars));
 			currPosition += noChars;
 		}
 		return tuple;

@@ -18,5 +18,11 @@ public:
 	
 	static string NumberToString ( int Number );
 	static void appendList(list<char> &listOne, list<char> &listTwo);
+	static std::string &ltrim(std::string &s) ;
 
+// trim from end
+static std::string &rtrim(std::string &s) ;
+
+// trim from both ends
+static std::string &trim(std::string &s) ;
 };

@@ -1,7 +1,12 @@
 #include "stdafx.h"
 #include "CommonUtility.h"
 #include <sstream>
+#include <locale> 
+#include <iostream> 
+#include <functional> 
+#include <cctype>
 
+#include <algorithm> 
 string CommonUtility::convertShortToString(unsigned short number) {
 	unsigned char front = number;
 	unsigned char back = number >> 8;
@@ -65,3 +70,20 @@ void CommonUtility::appendList(list<char> &listOne, list<char> &listTwo) {
      ss << Number;
      return ss.str();
   }
+
+	 std::string &CommonUtility::ltrim(std::string &s) {
+		 
+        s.erase(s.begin(), find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+	}
+
+// trim from end
+ std::string &CommonUtility::rtrim(std::string &s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
+
+// trim from both ends
+std::string &CommonUtility::trim(std::string &s) {
+        return ltrim(rtrim(s));
+}

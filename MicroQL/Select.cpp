@@ -475,7 +475,7 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 
 		TableResult * tr1Ptr = &iter->second, * tr2Ptr= &iter1->second;
 		TableResult tr3;
-		tr3.merge(tr1Ptr, tr2Ptr);
+		//tr3.merge(tr1Ptr, tr2Ptr);
 		
 		// loop through and check for equal values
 		for(int i = 0; i < tr1.getNoOfRows(); i++)
