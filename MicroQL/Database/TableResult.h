@@ -23,6 +23,14 @@ public:
 		tm = new MQLTupleManager();
 
 	}
+
+	void setDeleteMark(FileManager *fm) {
+		tm->setDeleteMark(fm);
+	}
+
+	void startUpdate(FileManager *fm, StorageManager *sm, vector<MQLCondition> &cond, string primaryKeyColumn) {
+		tm->startUpdate(fm, sm, cond, primaryKeyColumn);
+	}
 	void loadResult(string tableName, vector<MQLColumn> &column, vector<MQLCondition> &condition){// dummy method method parameter subject to change	
 		TableDefinition td = tableDict->getTableDefinition(tableName);
 		int size = td.getNoOfColumn();
@@ -89,6 +97,13 @@ public:
 		
 		tm->addTuple(td);
 	}
+
+	void print() {
+		
+	}
+
+	
+
 protected:
 
 	MQLTupleManager *getTupleManager() {

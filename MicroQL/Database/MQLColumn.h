@@ -15,13 +15,13 @@ public:
 	MQLColumn(){
 	}
 	MQLColumn(string &name, ColumnType ct){
-		columnName = name;
+		columnName = CommonUtility::trim(name);
 		columnSize = 0;
 		columnType = ct;
 		primaryKey = false;
 	}
     MQLColumn(string &name, ColumnType ct, int size, bool isPrimaryKey) {
-	    columnName = name;
+	    columnName = CommonUtility::trim(name);
 		columnSize = size;
 		columnType = ct;
 		primaryKey = isPrimaryKey;

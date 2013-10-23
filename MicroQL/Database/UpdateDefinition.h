@@ -38,7 +38,7 @@ using namespace std;
 class UpdateDefinition {
 public:
 	void setName(string name) {
-		tableName = name;
+		tableName = CommonUtility::trim(name);
 	}
 	string getTableName();
 	MQLColumn getColumnAt(int i); 	
@@ -52,7 +52,32 @@ public:
 		updateColumn.push_back(cond);
 	}
 
-	void execute();
+	void execute(TableDictionary *td, BTree *bTree, FileManager *fm, StorageManager *sm) {
+
+		TableResult tr(td, bTree);
+
+		vector<MQLCondition>::iterator iter;
+
+
+		vector<MQLColumn> columnList;
+
+		TableDefinition tdef = td->getTableDefinition(tableName);
+		int size = tdef.getNoOfColumn();
+		for (int i = 0; i < size; i++) {
+			columnList.push_back(tdef.getColumnAt(i));
+		}		
+
+		tr.loadResult(tableName, columnList, whereColumn);
+
+		int noRows = tr.getNoOfRows();
+		if (tr.getNoOfRows() != 0) {
+			// start update
+			tr.startUpdate(fm, sm, updateColumn, tdef.getPrimaryKeyColumn().getColumnName()); 
+		}
+
+		cout << noRows;
+		cout << " updated.\n";
+	}
 private:
 	string tableName;
 	vector<MQLCondition> updateColumn;

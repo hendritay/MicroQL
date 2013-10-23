@@ -127,7 +127,7 @@ void TableDictionary::addColumnToColumnList(TableDefinition *td) {
 
 	for (int i = 0; i < noOfColumn; i++) {
 		MQLColumn &column = td->getColumnAt(i);
-		columnNameList[column.getColumnName()] = true;
+		columnNameList[column.getColumnName()] = td->getTableName();
 	}
 }
 
@@ -135,6 +135,6 @@ bool TableDictionary::columnExists(string columnName) {
 	if (!populatedTableList) 
 		populateTableList();
 
-	map<string, bool>::iterator iter = columnNameList.find(columnName);
+	map<string, string>::iterator iter = columnNameList.find(columnName);
 	return iter != columnNameList.end();
 }

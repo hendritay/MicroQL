@@ -35,8 +35,8 @@ public:
 	void  scan(int rootPageNo, MQLTupleManager *tm) {
 
 		string pageContent = myFileManager->readPage(rootPageNo);
-		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent);
-				
+		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent, true);
+
 		if (myBTreePage.getKeySize() == 0) { // root page {
 			return;
 		} 
@@ -45,14 +45,18 @@ public:
 
 		for (int i = 0; i < size; i++) {
 			BTreeKey &key = myBTreePage.getBKey(i);
-			MQLTuple tuple = MQLTuple::deSerialize(tm, key.getPayload());
-			
-			if (tm->match(tuple)) {
-				tm->addTuple(tuple);
+			if (!key.isDeleted()) {
+				MQLTuple tuple = MQLTuple::deSerialize(tm, key.getPayload());			
+				if (tm->match(tuple)) {
+					tuple.setPageLocation(rootPageNo);
+					tuple.setBKeyOffset(key.getKeyOffset());
+
+					tm->addTuple(tuple);
+				}
 			}
 
 			if (key.getLeftChildPage() != 0) {
-					scan(key.getLeftChildPage(), tm);
+				scan(key.getLeftChildPage(), tm);
 			} 
 
 			if (i == size -1 ){
@@ -65,7 +69,7 @@ public:
 	}	
 	void insertRecord(int rootPage, BTreeKey bKey) {
 
-		
+
 
 		BTreePage targetPage(myFileManager, myStorageManager);
 		int pageNo; 
@@ -73,6 +77,10 @@ public:
 
 		append(targetPage, bKey);
 
+	}
+
+	bool getBKey(string target, int rootPage, BTreeKey &bKey) {
+		return searchSingleRecord(target, rootPage, bKey);
 	}
 private:
 	StorageManager *myStorageManager;
@@ -83,7 +91,7 @@ private:
 	void append(BTreePage &bTreePage, BTreeKey bKey) {
 		bTreePage.append(bKey);		
 
-	
+
 		if (bTreePage.mustSplit()) {
 			BTreeKey danglingKey;
 			BTreePage page1(myFileManager, myStorageManager);
@@ -92,15 +100,15 @@ private:
 			danglingKey.setLeftChildPage(page1.getMyPage());
 			danglingKey.setRightPage (page2.getMyPage());
 
-			
+
 			if (page1.getParent() != 0){
 				string page = myFileManager->readPage(page1.getParent());
-				BTreePage parentPage = BTreePage::deSerializePage(myFileManager, myStorageManager,  page1.getParent(), page);
-				
+				BTreePage parentPage = BTreePage::deSerializePage(myFileManager, myStorageManager,  page1.getParent(), page, true);
+
 				append(parentPage, danglingKey);
 			} else { // special case (parent) 
 				BTreePage rootPage(myFileManager, myStorageManager);				
-				
+
 				int page1NewPage = myStorageManager->GiveMeFreePageNo();
 				int page1CurrentPage = page1.getMyPage();
 				page1.setParent(page1CurrentPage);
@@ -116,12 +124,12 @@ private:
 		}
 	}
 
-	
+
 
 	void  scan(int rootPageNo, vector<BTreeKey> &bKey) { 
 
 		string pageContent = myFileManager->readPage(rootPageNo);
-		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent);
+		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent, true);
 		if (myBTreePage.getKeySize() == 0) { // root page {
 			return;
 		} 
@@ -130,10 +138,11 @@ private:
 
 		for (int i = 0; i < size; i++) {
 			BTreeKey &key = myBTreePage.getBKey(i);
-			bKey.push_back(key);
+			if (!key.isDeleted())
+				bKey.push_back(key);
 
 			if (key.getLeftChildPage() != 0) {
-					scan(key.getLeftChildPage(), bKey);
+				scan(key.getLeftChildPage(), bKey);
 			} 
 
 			if (i == size -1 ){
@@ -145,18 +154,48 @@ private:
 
 	}	
 
-	
+
+
+	bool searchSingleRecord(string target, int rootPageNo, BTreeKey &bKey) {
+
+		string pageContent = myFileManager->readPage(rootPageNo);
+		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent, false);
+		if (myBTreePage.getKeySize() == 0) { // root page {
+			return false;
+		}
+
+		int targetIndex = myBTreePage.findKey(target);
+		if (myBTreePage.findKey(target) >= 0) {
+			// found 
+			bKey = myBTreePage.getBKey(targetIndex);
+			return true;
+		} else {
+
+			BTreeKey bKey = myBTreePage.findIntermediate(target);
+			if (bKey.getLeftChildPage() != 0 ) {
+				if (bKey.getValue().compare(target) < 0)
+					return searchSingleRecord(target, bKey.getRightChild(), bKey);
+				else
+					return searchSingleRecord(target, bKey.getLeftChildPage(), bKey);
+			} else {
+				// found suitable node to be inserted to. 
+				return false;
+			}
+		}
+		return false;
+	}	
+
 
 	void  searchRecord(string target, int rootPageNo, BTreePage &bTreePage, int &pageNo) {
 
 		string pageContent = myFileManager->readPage(rootPageNo);
-		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent);
+		BTreePage myBTreePage = BTreePage::deSerializePage(myFileManager, myStorageManager, rootPageNo, pageContent,true);
 		if (myBTreePage.getKeySize() == 0) { // root page {
 			bTreePage = myBTreePage;
 			pageNo = rootPageNo;
 			return;
 		}
-		
+
 		int targetIndex = myBTreePage.findKey(target);
 		if (myBTreePage.findKey(target) >= 0) {
 			// found 
@@ -164,7 +203,7 @@ private:
 			bTreePage = myBTreePage;
 			return;
 		} else {
-			
+
 			BTreeKey bKey = myBTreePage.findIntermediate(target);
 			if (bKey.getLeftChildPage() != 0 ) {
 				if (bKey.getValue().compare(target) < 0)

@@ -3,7 +3,7 @@
 #include <string>
 #include "CommonUtility.h"
 #include "Storage\FileManager.h"
-
+#include <iostream>
 /*
   
   ---------------------------
@@ -20,7 +20,9 @@ public:
 		payloadOffSet =0;
 		leftChildPage = 0;
 		mOverFlowPage  = 0;
+		deleted = false;
 	}
+
 	void setValue(string &pValue) {
 		value = pValue;
 	}
@@ -31,6 +33,7 @@ public:
 		payloadOffSet =0;
 		leftChildPage = 0;
 		mOverFlowPage  = 0;
+		deleted = false;
 	}
 
 	void setRightPage(int rightPageNo) {
@@ -47,7 +50,7 @@ public:
 			throw new exception("Not valid keyoffset");
 		}
 		// skip the no of chars and chars itself
-		fm->writeAt(CommonUtility::convertShortTo2Bytes(right) , pageNo, myKeyOffSet+ value.size() + 4);		
+		fm->writeAt(CommonUtility::convertShortTo2Bytes(right) , pageNo, myKeyOffSet+ value.size() + 5);		
 		setRightPage(right);		
 	}
 
@@ -56,7 +59,7 @@ public:
 			throw new exception("Not valid keyoffset");
 		}
 		// skip the no of chars and chars itself
-		fm->writeAt(CommonUtility::convertShortTo2Bytes(left), pageNo, myKeyOffSet+ value.size() + 2);		
+		fm->writeAt(CommonUtility::convertShortTo2Bytes(left), pageNo, myKeyOffSet+ value.size() + 3);		
 		setLeftChildPage(left);		
 	}
 
@@ -78,17 +81,32 @@ public:
 	}
 	ListChar serialize() {
 		ListChar result;
+
+		
+		if (deleted){
+			result.push_back('1');			
+		} else 
+			result.push_back('0');
+
 		CommonUtility::appendIntToList(result, value.size());
 		CommonUtility::convertStringToList(value, result);
 		CommonUtility::appendIntToList(result, leftChildPage);
 		CommonUtility::appendIntToList(result, rightChildPage);
 		CommonUtility::appendIntToList(result, payloadOffSet);
+
+		
 		
 		return result;
 	}
 
 	static BTreeKey deSerialize(string &content, int &toSkipChar) {
+
 		int currPosition = 0;
+		
+		bool deleted = content.at(currPosition) == '1';
+			
+		currPosition++;
+
 		int NoOfBytes = 2;
 		int charsNo = CommonUtility::convert2BytesToInt(content.substr(currPosition, NoOfBytes));
 		currPosition += NoOfBytes;
@@ -102,14 +120,17 @@ public:
 		int rightPageNo = CommonUtility::convert2BytesToInt(content.substr(currPosition, NoOfBytes));
 		currPosition += NoOfBytes;
 
+		
+
 		int payLoadOffset = CommonUtility::convert2BytesToInt(content.substr(currPosition, NoOfBytes));
-		currPosition += NoOfBytes;
+		currPosition += NoOfBytes;		
 
 		toSkipChar = currPosition;
 		BTreeKey btreek(key);
 		btreek.setRightPage(rightPageNo);
 		btreek.setLeftChildPage(leftPageNo);
 		btreek.setPayloadOffset(payLoadOffset);
+		btreek.setDeleted(deleted);
 		return btreek;
 	}
 
@@ -153,6 +174,18 @@ public:
 	void setKeyOffset(int off) {
 		myKeyOffSet	= off;
 	}
+
+	bool isDeleted() {
+		return deleted;
+	}
+
+	void setDeleted(bool value) {
+		deleted = value;
+	}
+
+	int getKeyOffset() {
+		return myKeyOffSet;
+	}
 private:
 	
 	string value;
@@ -163,4 +196,5 @@ private:
 	int payloadOffSet; // Where the payload resides at the same page
 	string payLoad; // record
 	int mOverFlowPage;
+	bool deleted; 
 };

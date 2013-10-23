@@ -57,7 +57,7 @@ public :
 	}
 
 
-	static BTreePage deSerializePage(FileManager *fm, StorageManager *sm, int pageNo, string page) {
+	static BTreePage deSerializePage(FileManager *fm, StorageManager *sm, int pageNo, string page, bool getPayLoad) {
 
 		BTreePage myBTreePage(fm, sm);
 
@@ -98,18 +98,20 @@ public :
 			content.erase(content.begin(), content.begin() + toSkip);
 			currPosition += toSkip;
 			// get or no get the payload, that's the question
-			if (page[bTree.getPayloadOffSet()]  == PageManager::NORMALROW ) { //
-				int NoOfChars = CommonUtility::convert2BytesToInt(page.substr(bTree.getPayloadOffSet() + 1, NoOfBytes));
-				bTree.setPayload(page.substr(bTree.getPayloadOffSet() + 1 + NoOfBytes, NoOfChars));
-			} else {
-				int pageNo = CommonUtility::convert2BytesToInt(page.substr(bTree.getPayloadOffSet() + 1, NoOfBytes));
-				string overflowPage = fm->readPage(pageNo);
-
-				if (overflowPage[0] != PageManager::OVERFLOWPAGE) {
-					throw new exception("This is no overflow page");
+			if (getPayLoad) {
+				if (page[bTree.getPayloadOffSet()]  == PageManager::NORMALROW ) { //
+					int NoOfChars = CommonUtility::convert2BytesToInt(page.substr(bTree.getPayloadOffSet() + 1, NoOfBytes));
+					bTree.setPayload(page.substr(bTree.getPayloadOffSet() + 1 + NoOfBytes, NoOfChars));
 				} else {
-					int OverNoOfChars = CommonUtility::convert2BytesToInt(overflowPage.substr(1, NoOfBytes));
-					bTree.setPayload(overflowPage.substr(NoOfBytes + 1, OverNoOfChars)); // assume the entire over flow page to 
+					int pageNo = CommonUtility::convert2BytesToInt(page.substr(bTree.getPayloadOffSet() + 1, NoOfBytes));
+					string overflowPage = fm->readPage(pageNo);
+
+					if (overflowPage[0] != PageManager::OVERFLOWPAGE) {
+						throw new exception("This is no overflow page");
+					} else {
+						int OverNoOfChars = CommonUtility::convert2BytesToInt(overflowPage.substr(1, NoOfBytes));
+						bTree.setPayload(overflowPage.substr(NoOfBytes + 1, OverNoOfChars)); // assume the entire over flow page to 
+					}
 				}
 			}
 
@@ -124,6 +126,7 @@ public :
 
 		return myBTreePage;
 	}
+
 
 
 
@@ -233,10 +236,7 @@ public :
 
 	void rewriteToNewPage(int pageNo) {
 
-		if (pageNo == 4) {
-			int a=0;
-		}
-
+		
 		int currPosition = 0;
 		list<char> page; 
 		list<char> pageEnd;
@@ -430,7 +430,7 @@ public :
 		firstFreeOffset += key.size();
 		myFileManager->writeAt(CommonUtility::convertShortTo2Bytes(firstFreeOffset), myPage, FirstFreePosition);
 
-	
+
 		// write the payload 
 		// complete 
 	}
@@ -448,6 +448,16 @@ public :
 	}
 	void setMyPage(int page) {
 		myPage = page;
+	}
+
+	void changePayload(string key, string payload) {
+		BKeyList::iterator iter = listKey.find(key);
+
+		if (iter != listKey.end()) {
+			iter->second.setPayload(payload);
+		} else {
+			cout << "Attempt to change key and not found.";
+		}
 	}
 private:
 	static const int MAX_CHARS_IN_SAME_PAGE = 800;

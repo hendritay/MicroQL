@@ -4,6 +4,7 @@
 #include "Database/TableDefinition.h"
 #include <map>
 #include <string>
+#include <iomanip>
 
 typedef map<string, pair<int, TableDefinition *>> DictionaryList;
 
@@ -44,6 +45,20 @@ public:
 			return iter->second;
 		} else 
 			return "";
+	}
+
+	
+	void print() {
+		
+		cout << "Table Name\n";
+		cout << "==========\n";
+
+		DictionaryList::iterator iter;
+
+		for (iter = dicitionaryList.begin(); iter != dicitionaryList.end(); iter++) {
+			cout << iter->first;
+			cout << endl;
+		}
 	}
 
 private:

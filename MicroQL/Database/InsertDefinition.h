@@ -39,7 +39,7 @@ public:
 	void addInsert(MQLCondition cond);
 
 	void execute(TableDictionary *td, BTree *bTree);
-	bool verify(TableDictionary *tdict);
+	bool verify(TableDictionary *tdict, BTree *bTree);
 private:
 	string tableName;
 	map<string, MQLCondition> InsertColumn;

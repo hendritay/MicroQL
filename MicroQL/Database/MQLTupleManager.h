@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 #include <vector>
 #include <list>
 #include "Database\MQLTuple.h";
@@ -14,6 +16,7 @@ class MQLTupleManager {
 public :
 	// Column must be added first;
 	// then follow by condition
+
 
 	void addColumnList(MQLColumn column) {
 		columnList.push_back(column);
@@ -52,7 +55,7 @@ public :
 		int index =0;
 
 		for (iter = columnNo.begin(); iter != columnNo.end(); iter++) {
-			
+
 			if (iterCond->getColumn2().getColumnType() == CT_CONSTANT_STRING) {
 				if (tp.getValueAt(*iter).compare(iterCond->getColumn2().getColumnName()) != 0) {
 					return false;
@@ -63,7 +66,7 @@ public :
 				if (tp.getValueAt(*iter).compare(tp.getValueAt(columnNo)) != 0)
 					return false;
 			}
-	
+
 			iterCond++;
 		}
 		return true;
@@ -100,6 +103,75 @@ public :
 			tp.addValue(t2.getValueAt(i));
 		}
 		return tp;
+	}
+
+	void setDeleteMark(FileManager *fm) {
+		TupleList::iterator iter;
+
+		for (iter = tupleList.begin(); iter != tupleList.end(); iter++) {
+			iter->markDelete(fm);
+		}
+	}
+
+	void startUpdate(FileManager *fm, StorageManager *sm, vector<MQLCondition> &updateCond, string primaryKeyColumn) {
+
+		vector<MQLCondition>::iterator iterCond = updateCond.begin();
+
+		
+		int priColNo = getColumnNo(primaryKeyColumn);
+
+		TupleList::iterator tupleIter;
+
+
+		int colNo;
+		map<int, vector<pair<string, MQLTuple*>>> mapList; // maple story
+		map<int, vector<pair<string, MQLTuple*>>>::iterator iterFound;
+		for (tupleIter = tupleList.begin(); tupleIter != tupleList.end(); tupleIter++) {
+			for (iterCond = updateCond.begin(); iterCond != updateCond.end(); iterCond++) {
+
+				colNo = getColumnNo(iterCond->getColumn1().getColumnName());
+				// temp hack;
+					tupleIter->setValueAt(colNo, iterCond->getColumn2().getColumnName());				
+
+				/*if (iterCond->getColumn2().getColumnType() == CT_CONSTANT_STRING) {
+					tupleIter->setValueAt(colNo, iterCond->getColumn2().getColumnName());				
+				} else {
+					int columnNo = getColumnNo(iterCond->getColumn2().getColumnName());
+					tupleIter->setValueAt(colNo, tupleIter->getValueAt(columnNo));
+				}*/
+				
+			}
+
+			iterFound = mapList.find(tupleIter->getPageLocation());
+			if (iterFound != mapList.end()) {
+				pair<string, MQLTuple*> pair1(tupleIter->getValueAt(priColNo), tupleIter._Ptr);
+				iterFound->second.push_back(pair1);
+			} else {
+				vector<pair<string, MQLTuple*>> newList;
+				pair<string, MQLTuple*> pair1(tupleIter->getValueAt(priColNo), tupleIter._Ptr);
+				newList.push_back(pair1);
+				mapList[tupleIter->getPageLocation()]= newList;
+			}			
+		}
+
+		// heavy lifting
+		map<int, vector<pair<string, MQLTuple*>>>::iterator iterMap;
+
+		vector<pair<string, MQLTuple*>>::iterator iterTuplePair;
+
+		for (iterMap = mapList.begin(); iterMap != mapList.end(); iterMap++) {
+			string page = fm->readPage(iterMap->first);
+
+			BTreePage treePage = BTreePage::deSerializePage(fm, sm, iterMap->first, page, true);
+			for (iterTuplePair = iterMap->second.begin(); iterTuplePair != iterMap->second.end(); iterTuplePair++) {
+				treePage.changePayload(iterTuplePair->first, iterTuplePair->second->serialize());
+			}
+
+			treePage.rewriteToNewPage(treePage.getMyPage());
+		}
+
+		
+
 	}
 protected:
 	MQLTuple &getTupleAt(int i) {

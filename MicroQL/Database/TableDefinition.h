@@ -2,6 +2,9 @@
 #include <string>
 #include "Database\MQLColumn.h"
 #include <vector>
+#include <iostream>
+#include <iomanip>
+
 typedef vector<MQLColumn> ColumnList ;
 using namespace std;
 
@@ -28,6 +31,7 @@ using namespace std;
 
 class TableDefinition {
 public:
+
 	TableDefinition() {
 
 	}
@@ -70,6 +74,39 @@ public:
 
 	void setTableName(string table){
 		tableName = table;
+	}
+
+	bool findColumnName(string colName) {
+
+		ColumnList::iterator iter;
+
+		for (iter = columnList.begin(); iter != columnList.end(); iter++) {
+			if (iter->getColumnName().compare(colName) == 0)
+				return true;
+		}
+
+		return false;
+		
+	}
+
+	void print() {
+		cout << left;
+		cout << '|' << setw(30) << "Column " << '|' << setw(10) << "Type " << '|' << endl;
+		cout << "========================================\n";
+		ColumnList::iterator iter;
+
+		for (iter = columnList.begin(); iter != columnList.end(); iter++) {
+			cout << setw(30);
+			cout << iter->getColumnName(); 
+
+			if (PrimaryKey.getColumnName().compare(iter->getColumnName()) == 0) 
+				cout << "(PK)";
+			cout <<"         ";
+			cout << setw(10);
+			cout << "VARCHAR(";
+			cout << iter->getColumnSize();
+			cout << ")\n";
+		}
 	}
 private:
 	string tableName;

@@ -65,8 +65,32 @@ public:
 		advance(iter, i);
 		valueList.erase(iter);
 	}
+
+	void setPageLocation(int pl) {
+		pageLocation = pl;
+	}
+
+	int getPageLocation() {
+		return pageLocation;
+	}
+
+	void setBKeyOffset(int off) {
+		treeKeyOffset = off;
+	}
+
+	void markDelete(FileManager *fm) {
+		fm->writeAt('1', pageLocation, treeKeyOffset);
+	}
+
+	void setValueAt(int index, string value) {
+		list<string>::iterator iter = valueList.begin();
+		advance(iter, index);
+		(*iter) = value;
+	}
 private:
-	
+	int pageLocation; 
+	int treeKeyOffset;
+
 	list<string> valueList;
 	MQLTupleManager *myParent;
 };

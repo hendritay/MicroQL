@@ -3,6 +3,8 @@
 #include "Storage\BTreeKey.h"
 #include "Database\MQLTuple.h"
 #include "Storage\BTree.h"
+#include "Storage\BTreeKey.h"
+
 #include "Database\MQLTupleManager.h"
 #include <iostream>
 
@@ -17,7 +19,7 @@ void InsertDefinition::addInsert(MQLCondition cond) {
 	InsertColumn[cond.getColumn1().getColumnName()] = cond;
 }
 
-bool InsertDefinition::verify(TableDictionary *tdict) {
+bool InsertDefinition::verify(TableDictionary *tdict, BTree *bTree) {
 
 	if (!tdict->tableExists(tableName)) {
 		cout << "No table was found.\n";
@@ -41,6 +43,15 @@ bool InsertDefinition::verify(TableDictionary *tdict) {
 			return false;
 		}
 	}
+
+	iterfound = InsertColumn.find(td.getPrimaryKeyColumn().getColumnName());
+
+	BTreeKey bKey;
+	if (bTree->getBKey(iterfound->second.getColumn2().getColumnName(), td.getRecordPage(),  bKey)) {
+		cout <<"Duplicate primary key found\n";
+		return false;
+	}
+	 iterfound->second.getColumn2().getColumnName();
 
 	return true;
 
