@@ -11,7 +11,7 @@
 #include <set>
 //Select :: Select(){ }
 
-Select :: Select(TableDictionary * tdPtr1, BTree *bTreePtr1){tdPtr = tdPtr1; bTreePtr1 = bTreePtr;}
+Select :: Select(TableDictionary * tdPtr1, BTree *bTreePtr1){tdPtr = tdPtr1; bTreePtr = bTreePtr1;}
 
 TableResult * Select :: evaluateQuery(string query) 
 {
@@ -787,32 +787,34 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 					else
 					{
 						value = currentValue;
-					}
-					if(value.compare("*") == 0 && isFirstValue)
-					{
-						if(hasColma)
+						if(value.compare("*") == 0 && isFirstValue)
 						{
-							return false;
-						}
-						isFirstValue  = false;
-					}
-					else
-					{
-						if(value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
-						{
-							return false;
-						}
-						
-						if(tdPtr->columnExists(value))
-						{
-							qp.projections.push_back(value);
+							if(hasColma)
+							{
+								return false;
+							}
+							isFirstValue  = false;
 						}
 						else
 						{
-							return false;
-						}
+							if(value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != -1)
+							{
+								return false;
+							}
 						
+							if(tdPtr->columnExists(value))
+							{
+								qp.projections.push_back(value);
+							}
+							else
+							{
+								return false;
+							}
+						
+						}
+
 					}
+					
 
 					if(!hasColma)
 					{

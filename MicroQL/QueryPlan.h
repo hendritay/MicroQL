@@ -9,7 +9,7 @@ using namespace std;
 
 class QueryPlan{
 	public:
-		QueryPlan :: QueryPlan();
+		QueryPlan :: QueryPlan(){}
 		// columnName
 		vector<string> projections;	// SELECT clause
 		vector<string> selections; // FROM & INNER JOIN ON clause (store table name)
