@@ -3,6 +3,7 @@
 #include "..\Storage\PageManager.h"
 #include "CommonUtility.h"
 #include "MQLColumn.h"
+#include "TableDictionary.h"
 /* Format of table definition stored in file is similiar to dictionary file
 
 [NumberOfColumn]

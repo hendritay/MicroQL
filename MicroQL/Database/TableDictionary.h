@@ -10,6 +10,36 @@ typedef map<string, pair<int, TableDefinition *>> DictionaryList;
 
 class TableDictionary {
 public:
+
+	bool verifyCandidate(TableDefinition *td) {
+		if (tableExists(td->getTableName())) {
+			cout << "Table name exists";
+			cout << endl;
+			return false;
+		} 
+
+		if (!td->isTherePrimaryKey()) {
+			cout << "No primary key specified or specified wrongly.";
+			cout << endl;
+			return false;
+		}
+
+		int columnSize = td->getNoOfColumn();
+
+		for (int i = 0; i < columnSize; i++) {
+			if (columnExists(td->getColumnAt(i).getColumnName())) {
+				cout << "No same column name allowed. Sorry.";
+				cout << endl;
+				return false;
+			}
+		}
+
+		return true;
+		
+
+
+
+	}
 	TableDictionary(FileManager *file, StorageManager *sm) {
 		myFile = file;
 		myStorage = sm;

@@ -18,6 +18,11 @@ public:
 	string readPage(int pageNo);
 	char * readPageChar(int pageNo);
 	
+	static bool writeLog(string path, string command);
+
+	static bool fileExists(string path); 
+	
+
 private:
 	static string FileHeader ;
 	string path;

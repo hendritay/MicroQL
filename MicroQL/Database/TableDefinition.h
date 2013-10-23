@@ -33,10 +33,11 @@ class TableDefinition {
 public:
 
 	TableDefinition() {
-
+		pk = false;
 	}
 	TableDefinition(string tbName) {
 		tableName = tbName;
+		pk = false;
 	}
 	MQLColumn &getColumnAt(int i) {
 		return columnList.at(i);
@@ -48,9 +49,13 @@ public:
 	void addColumn(MQLColumn &column){
 		columnList.push_back(column);
 
-		if (column.isPrimaryKey()) 
+		if (column.isPrimaryKey()) {
 			PrimaryKey = column;
+			pk = true;
+		}
 	}
+
+	
 
 	void create();
 	ListChar serialize();
@@ -108,10 +113,15 @@ public:
 			cout << ")\n";
 		}
 	}
+
+	bool isTherePrimaryKey() {
+		return pk;
+	}
 private:
 	string tableName;
 	ColumnList columnList;
 	MQLColumn PrimaryKey;
 	int startRecordPageNo; 
+	bool pk;
 
 };

@@ -10,8 +10,10 @@ string FileManager::FileHeader = "MicroQL 1.0";
 bool FileManager::createAFile(string path) {
 	// initialize file. 
 	ofstream myfile(path);
-	if (myfile.is_open())
+	if (myfile.is_open()) 
 		myfile.close();
+	else 
+	   return false;
 
 	FileManager fm(path);
 	list<char> header;
@@ -21,6 +23,18 @@ bool FileManager::createAFile(string path) {
 	fm.writeAt(header, 0, 0);
 	fm.writeAt(header2, 1, 0); // storage page
 	fm.writeAt(CommonUtility::convertShortTo2Bytes(0), 2, 0); // dictionary page
+	return true;
+}
+
+ bool FileManager::writeLog(string path, string command){
+	// initialize file. 
+	 try {
+		ofstream myfile(path, ios::app);
+		myfile << command;
+		myfile << endl;
+		myfile.close();
+	 } catch (exception ex) {
+	 }
 	return true;
 }
 
@@ -77,3 +91,13 @@ string FileManager::readPage(int pageNo) {
 	return string(memblock, PageSize);
 }
 
+bool FileManager::fileExists(string path) {
+
+	ifstream myfile(path);
+	if (myfile.is_open()){
+		myfile.close();
+		return true;
+	}
+
+	return false;
+}

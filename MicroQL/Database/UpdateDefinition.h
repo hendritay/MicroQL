@@ -78,6 +78,47 @@ public:
 		cout << noRows;
 		cout << " updated.\n";
 	}
+
+	bool verify(TableDictionary *tdict) {
+		if (!tdict->tableExists(tableName)) {
+			cout << "No table was found.\n";
+			return false;
+		}
+
+		TableDefinition td = tdict->getTableDefinition(tableName);
+
+		
+		vector<MQLCondition>::iterator iterWhere;
+
+		for (iterWhere = whereColumn.begin(); iterWhere != whereColumn.end(); iterWhere++) {
+			if (!td.findColumnName(iterWhere->getColumn1().getColumnName())) {
+				cout << iterWhere->getColumn1().getColumnName();
+				cout << " doesn't exists in the table definition \n";
+				return false;
+			} 
+		}
+
+		for (iterWhere = updateColumn.begin(); iterWhere != updateColumn.end(); iterWhere++) {
+			if (!td.findColumnName(iterWhere->getColumn1().getColumnName())) {
+				cout << iterWhere->getColumn1().getColumnName();
+				cout << " doesn't exists in the table definition \n";
+				return false;
+			} 
+		}
+
+		vector<MQLCondition>::iterator iterSet;
+
+		for (iterSet = updateColumn.begin(); iterSet != updateColumn.end(); iterSet++) {
+			if (iterSet->getColumn1().getColumnName().compare(td.getPrimaryKeyColumn().getColumnName()) == 0) {
+				cout << "Update of primary key value is not allowed.";
+				return false;
+			}
+		}
+
+	
+	
+		return true;
+	}
 private:
 	string tableName;
 	vector<MQLCondition> updateColumn;

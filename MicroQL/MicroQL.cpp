@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "Parser.h"
 #include "MainType.h"
+#include "Select.h"
+
 #include <stdio.h>
 #include "Storage\FileManager.h"
 #include "Storage\StorageManager.h"
@@ -33,10 +35,10 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	string path = "c:\\study\\cs4221\\hellodb.txt";
+	string logPath = "c:\\study\\cs4221\\hellolog.txt";
 
-	if (remove(path.c_str())) 
-		cout << "deleted\n";
-
+	if (remove(path.c_str()) == 0) 
+		cout << "default empty HelloDB.txt loaded" << endl;
 	
 	FileManager::createAFile(path);	
 	
@@ -45,20 +47,21 @@ int _tmain(int argc, _TCHAR* argv[])
 	StorageManager *sm  = new StorageManager(fm);
 	TableDictionary *tdictionary = new TableDictionary(fm, sm);
 
-
-
-	
 	BTree * bt = new BTree(fm, sm);
 
 	string command;
 	while (true) {
-		cout << "microql>";
+		cout << "\nmicroql>";
 		getline(cin, command);
+		FileManager::writeLog(logPath, command);
 
 		if (CommonUtility::trim(command).find("CREATE TABLE") != string::npos){
 			TableDefinition *td = lrParser.parseCreateCmd(command);
 			if (td == NULL)  {
 				cout << "Syntax error\n";
+				continue;
+			} else if (!tdictionary->verifyCandidate(td)) {
+				delete td;
 				continue;
 			}
 			tdictionary->storeTableToDictionary(td);
@@ -68,21 +71,31 @@ int _tmain(int argc, _TCHAR* argv[])
 			if (dd == NULL)  {
 				cout << "Syntax error\n";
 				continue;
+			} else if (!dd->verify(tdictionary, bt)) {
+				delete dd;
+				continue;
 			}
+
+			dd->execute(tdictionary, bt, fm);
 			delete dd;
 		}else if (CommonUtility::trim(command).find("UPDATE") != string::npos){
 			UpdateDefinition *ud = lrParser.parseUpdateCmd(command);
 			if (ud == NULL)  {
 				cout << "Syntax error\n";
 				continue;
+			} else if (!ud->verify(tdictionary)) {
+				delete ud;
+				continue;
 			}
+
+			ud->execute(tdictionary, bt, fm, sm);
 			delete ud;
 		}else if (CommonUtility::trim(command).find("INSERT INTO") != string::npos){
 			InsertDefinition *id = lrParser.parseInsertCmd(command)   ;		
 			if (id == NULL)  {
 				cout << "Syntax error\n";
 				continue;
-			} else if (!id->verify(tdictionary)) {
+			} else if (!id->verify(tdictionary, bt)) {
 				delete id;
 				continue;
 			}
@@ -92,46 +105,6 @@ int _tmain(int argc, _TCHAR* argv[])
 			delete id;
 		}else if (CommonUtility::trim(command).find("SELECT") != string::npos){
 			// for kimli
-			TableDefinition *td = new TableDefinition("EmployeeInformation");
-			string columnName = "employeeid";
-			MQLColumn column1(columnName, CT_VARCHAR, 20, true);
-
-			string columnName2 = "age";
-			MQLColumn column2(columnName2, CT_VARCHAR, 10, false);
-	
-			td->addColumn(column1);
-			td->addColumn(column2);
-
-			TableDefinition *td2 = new TableDefinition("Sale");
-			columnName = "saleid";
-			MQLColumn column3(columnName, CT_VARCHAR, 28, true);
-
-			columnName2 = "qty";
-			MQLColumn column4(columnName2, CT_VARCHAR, 30, false);
-	
-			td2->addColumn(column3);
-			td2->addColumn(column4);
-	
-	
-			TableDictionary *tdictionary = new TableDictionary(fm, sm);
-			tdictionary->storeTableToDictionary(td);
-			tdictionary->storeTableToDictionary(td2);
-
-			Select select = Select(tdictionary, bt);
-			TableResult * tr = select.evaluateQuery(command);
-			if(tr == NULL)
-			{
-				cout << "Syntax or Semantics error\n";
-				continue;
-			}
-			else
-			{
-				cout << "complete\n";
-				continue;
-				//tr.print();
-
-			}
-			/*
 			TableResult tr(tdictionary, bt);
 
 			// CONSTRUCTING 
@@ -156,43 +129,122 @@ int _tmain(int argc, _TCHAR* argv[])
 			conditionList.push_back(cond1);
 			tr.loadResult("employeeinformation", colList, conditionList);
 
-			// CONSTRUCTING
-			// SELECT * FROM employeecar;
-			string colNamecar ="employeeid";
-			MQLColumn columncar(colNamecar , CT_VARCHAR);
+			tr.print();
 
-			string colNamecarplate ="carplate";
-			MQLColumn columncarplate(colNamecarplate, CT_VARCHAR);
+			//// CONSTRUCTING
+			//// SELECT * FROM employeecar;
+			//string colNamecar ="employeeid";
+			//MQLColumn columncar(colNamecar , CT_VARCHAR);
 
-			vector<MQLColumn> colcarLIst;
-			colcarLIst.push_back(columncar);
-			colcarLIst.push_back(columncarplate);
+			//string colNamecarplate ="carplate";
+			//MQLColumn columncarplate(colNamecarplate, CT_VARCHAR);
 
-			vector<MQLCondition> condCarList;
-			TableResult trcar(tdictionary, bt);
-			trcar.loadResult("employeecar", colcarLIst, condCarList);
+			//vector<MQLColumn> colcarLIst;
+			//colcarLIst.push_back(columncar);
+			//colcarLIst.push_back(columncarplate);
+
+			//vector<MQLCondition> condCarList;
+			//TableResult trcar(tdictionary, bt);
+			//trcar.loadResult("employeecar", colcarLIst, condCarList);
 
 
 			// merging
 
-			TableResult trNew = TableResult::merge(&tr, &trcar, tdictionary, bt);
+		
+			// for kimli 
+		}else if (CommonUtility::trim(command).find("STAR") != string::npos) {		
+			string newCommand= CommonUtility::trim(command);
+			size_t f = newCommand.find(";");
+			string tableName;
+			tableName = CommonUtility::trim(newCommand.substr(4));
 
-			for (int i = 0; i < tr.getNoOfRows(); i++) {
-				for (int j = 0; j < trcar.getNoOfRows(); j++) {
-					trNew.addMergedRow(&tr, i, &trcar, j);
+			if (f != string::npos) 
+				tableName = CommonUtility::trim(tableName.substr(0, tableName.size() -1));
+
+			TableResult tr(tdictionary, bt);
+			tr.loadResultStar (tableName);
+			tr.print();
+
+		}else if (CommonUtility::trim(command).find("SHOW INFO") != string::npos) {		
+			
+
+
+			string newCommand= CommonUtility::trim(command);
+			size_t f = newCommand.find(";");
+			string tableName;
+			tableName = CommonUtility::trim(newCommand.substr(10));
+
+			if (f != string::npos) 
+				tableName = CommonUtility::trim(tableName.substr(0, tableName.size() -1));
+
+			
+			//tableName.replace(tableName.begin(), tableName.end(), ';', '');
+			if (!tdictionary->tableExists(tableName)) {
+				cout << "Table not found.\n";
+				continue;
+			} else {
+				TableDefinition tdef = tdictionary->getTableDefinition(tableName);
+				tdef.print();
+			}
+			
+		} else if (CommonUtility::trim(command).compare("SHOW TABLES;") == 0) {
+			tdictionary->print();
+		} else if (CommonUtility::trim(command).find("quit") != string::npos){
+			break;
+		} else if (CommonUtility::trim(command).find("LOAD DATABASE") != string::npos){
+			string newCommand= CommonUtility::trim(command);
+			size_t f = newCommand.find(";");
+			string pathName;
+			pathName= CommonUtility::trim(newCommand.substr(14));
+
+			if (f != string::npos) 
+				pathName= CommonUtility::trim(pathName.substr(0, pathName.size() -1));
+
+
+			if (FileManager::fileExists(pathName)) {
+				try {
+					FileManager fm1(pathName);					
+					TableDictionary dict(&fm1, sm);
+					delete fm;
+					delete sm;					
+					delete tdictionary;					
+					delete bt;
+
+					fm = new FileManager(pathName);
+					sm  = new StorageManager(fm);
+					tdictionary = new TableDictionary(fm, sm);
+
+					bt = new BTree(fm, sm);
+
+					cout << "Database ";
+					cout << pathName;
+					cout << " loaded";
+					cout << endl;
+				} catch (exception e) {
+					cout << "Database not loaded.";
+
+				}
+
+			} else {
+				
+				if (FileManager::createAFile(pathName)) {
+					delete fm;
+					delete tdictionary;
+					delete bt;
+					delete sm;
+					fm = new FileManager(pathName);
+					sm = new StorageManager(fm);
+					tdictionary = new TableDictionary(fm, sm);
+					
+					bt = new  BTree(fm,sm);
+					cout << "Database created." << endl;
+				} else {
+					cout << "Database not loaded.";
 				}
 			}
-			*/
-
-			// for kimli 
-		}else if (CommonUtility::trim(command).find("quit") != string::npos){
-			break;
 		}
 	}
 
-
-
-	//TableDefinition *td = lrParser.parseCreateCmd("CREATE TABLE employeeinformation(employeeid varchar(10), name varchar(30), age varchar(10), PRIMARY KEY(employeeid));");
 	return 0;
 }
 

@@ -119,6 +119,8 @@ private:
 				rootPage.addKey(danglingKey);	
 				rootPage.rewriteToNewPage(page1CurrentPage);
 			}
+		} else if (bTreePage.NewKeyRewrite()) {
+			bTreePage.rewriteToNewPage(bTreePage.getMyPage());
 		} else {
 			bTreePage.save();
 		}
@@ -168,6 +170,8 @@ private:
 		if (myBTreePage.findKey(target) >= 0) {
 			// found 
 			bKey = myBTreePage.getBKey(targetIndex);
+			if (bKey.isDeleted()) 
+				return false;
 			return true;
 		} else {
 

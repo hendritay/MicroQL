@@ -31,6 +31,19 @@ public:
 	void startUpdate(FileManager *fm, StorageManager *sm, vector<MQLCondition> &cond, string primaryKeyColumn) {
 		tm->startUpdate(fm, sm, cond, primaryKeyColumn);
 	}
+	void loadResultStar(string tableName) {
+		if (!tableDict->tableExists(tableName)){
+			cout <<"Table Name not exits";
+			return; 
+		}
+		TableDefinition td = tableDict->getTableDefinition(tableName);
+		int size = td.getNoOfColumn();
+		for (int i = 0; i < size; i++) {
+			tm->addColumnList(td.getColumnAt(i));
+		}
+
+		myBTree->scan(td.getRecordPage(), tm);
+	}
 	void loadResult(string tableName, vector<MQLColumn> &column, vector<MQLCondition> &condition){// dummy method method parameter subject to change	
 		TableDefinition td = tableDict->getTableDefinition(tableName);
 		int size = td.getNoOfColumn();
@@ -99,7 +112,28 @@ public:
 	}
 
 	void print() {
+			cout << left;
 		
+		int size = tm->getNoOfColumn();
+		int columnSize = 79 / size;
+
+		for (int i = 0; i < size; i++) {
+			cout << setw(columnSize);
+			cout << tm->getColumnAt(i).getColumnName();
+		}
+		cout << endl;
+		cout << setfill('=') << setw(size * columnSize) << "";
+		cout << setfill(' ');
+		cout << endl;
+		int noOfTuples = tm->getNoOfRows();
+
+		for (int i = 0; i < noOfTuples; i++) {
+			for (int j = 0; j < size; j++) {
+				cout << setw(columnSize);
+				cout << tm->getValueAt(i, j);				
+			}
+			cout << endl;
+		}
 	}
 
 	

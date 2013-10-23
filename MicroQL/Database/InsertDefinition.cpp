@@ -41,6 +41,13 @@ bool InsertDefinition::verify(TableDictionary *tdict, BTree *bTree) {
 		if (iterfound == InsertColumn.end()) {
 			cout << "Column " + td.getColumnAt(i).getColumnName() + "not found.\n";
 			return false;
+		} else {
+			if (iterfound->second.getColumn2().getColumnName().size() > td.getColumnAt(i).getColumnSize()) {
+				cout << "Column " + td.getColumnAt(i).getColumnName() + " more than ";
+				cout << td.getColumnAt(i).getColumnSize();
+				cout << " chars " << endl;
+				return false;
+			}
 		}
 	}
 

@@ -225,7 +225,8 @@ DeleteDefinition* Parser::parseDeleteCmd(string sqlCommand){
 	tableName = getTableName(tableInformation, "DELETE FROM ");
 	}
 	else{
-		tableName = getTableName(0, "DELETE FROM ");
+		string tableInformation = command;
+		tableName = getTableName(tableInformation, "DELETE FROM ");
 		delDef->setName(tableName);
 		return delDef;
 	}
@@ -248,11 +249,14 @@ DeleteDefinition* Parser::parseDeleteCmd(string sqlCommand){
 			//cout << "incorrect no. of arguments" << endl;
 			return NULL;
 		}
-		if (!(splitResults[1].find("'") != string::npos && (splitResults[1].find_last_of("'") != splitResults[1].find("'") ))){
+		if(splitResults[1].find("'")!= 0){
+		return NULL;
+		}
+		if (!(splitResults[1].find("'") != string::npos && (splitResults[1].find_last_of("'") == (splitResults[1].length()-1) ))){
 			return NULL;
 		}
-		replaceSubstring(splitResults[1], "'", " ");
-		splitResults[1] = trim(splitResults[1]);
+		replaceSubstring(splitResults[1], "'", "");
+		splitResults[0] = trim(splitResults[0]);
 		conditionClauses.push_back(make_pair(splitResults[0], splitResults[1]));
 	}
 
@@ -279,7 +283,7 @@ UpdateDefinition* Parser::parseUpdateCmd(string sqlCommand){
 	}
 	string command = preprocessCommand(sqlCommand);
 	string tableInformation = command.substr(0, command.find("SET "));
-	string tableName = getTableName(tableInformation, "UPDATE ");
+	string tableName = trim(getTableName(tableInformation, "UPDATE "));
 
 	MQLColumn col1;
 	MQLColumn col2;
@@ -310,11 +314,12 @@ UpdateDefinition* Parser::parseUpdateCmd(string sqlCommand){
 			updateInfoDetails = split(splitUpdateInfo[counter], '=');
 			if (updateInfoDetails.size() != 2)
 				return NULL;
+			replaceSubstring(updateInfoDetails[1], "'", "");
 			updateInfoClauses.push_back(make_pair(updateInfoDetails[0], updateInfoDetails[1]));
 		}
 		for (vector<pair<string, string>>::size_type counter = 0; counter < updateInfoClauses.size(); counter++){
 			MQLColumn col1(updateInfoClauses[counter].first, CT_VARCHAR);	
-			MQLColumn col2(updateInfoClauses[counter].second, CT_VARCHAR);
+			MQLColumn col2(updateInfoClauses[counter].second, CT_CONSTANT_STRING);
 			string oper = "=";
 			MQLCondition cond(col1, oper, col2);
 			upDef->addSet(cond);
@@ -329,11 +334,12 @@ UpdateDefinition* Parser::parseUpdateCmd(string sqlCommand){
 				conditionDetails = split(splitConditions[counter], '=');
 				if (conditionDetails.size() != 2)
 					return NULL;
-				if (!(conditionDetails[1].find("'") != string::npos && (conditionDetails[1].find_last_of("'") != conditionDetails[1].find("'") ))){
+				if(conditionDetails[1].find("'")!= 0)
+					return NULL;
+				if (!(conditionDetails[1].find("'") != string::npos && (conditionDetails[1].find_last_of("'") == (conditionDetails[1].length()-1) ))){
 				return NULL;
 				}
-				replaceSubstring(conditionDetails[1], "'", " ");
-				conditionDetails[1] = trim(conditionDetails[1]);
+				replaceSubstring(conditionDetails[1], "'", "");
 				conditionClauses.push_back(make_pair(conditionDetails[0], conditionDetails[1]));
 			}
 

@@ -30,6 +30,7 @@ public :
 		myFileManager = fm;
 		myStorageManager =sm;
 		IsNewKey = false;
+		newKeyRewrite = false;
 		mNextSibling = 0;
 		mParent = 0;
 	}
@@ -183,8 +184,26 @@ public :
 
 
 
+
 	// staging for adding into Page STring
 	void append(BTreeKey bKey) {
+
+		// extra condition for taking care of deleted key
+
+		map<string, BTreeKey>::iterator iterFound = listKey.find(bKey.getValue());
+
+		if (iterFound != listKey.end()) {
+			if (iterFound->second.isDeleted()) {
+				iterFound->second.setPayload(bKey.getPayload());
+				iterFound->second.setDeleted(false);
+				newKey = new BTreeKey(bKey);
+				newKeyRewrite = true;
+				IsNewKey =true;
+
+				return; 
+			}
+		}
+
 		map<string, BTreeKey>::iterator iter = listKey.begin(); 		
 		map<string, BTreeKey>::iterator iterNext;
 
@@ -205,9 +224,6 @@ public :
 				iter->second.setLeftChildPageAndWrite(myFileManager, myPage,  bKey.getRightChild());
 
 			} else {
-
-
-
 				while (true) { //(see above)
 					iterNext = iter;
 					iterNext++;
@@ -318,6 +334,7 @@ public :
 
 		myFileManager->writeAt(page, pageNo, 0);
 		myFileManager->writeAt(pageEnd, pageNo, secondFreeOffset);
+		newKeyRewrite  = false;
 	}
 
 	// ASSUME the new key left and right page has been set properly 
@@ -365,10 +382,10 @@ public :
 
 		if (listKey.size() > MAX_KEY)
 			return true;
-
-		if (newKey->getTotalSpaceRequired() > getFreeChars()) {
-			return true;
-		}		
+		if (!newKeyRewrite)
+			if (newKey->getTotalSpaceRequired() > getFreeChars()) 
+				return true;
+		
 		return false;
 	}
 
@@ -459,6 +476,14 @@ public :
 			cout << "Attempt to change key and not found.";
 		}
 	}
+
+	bool NewKeyRewrite() {
+
+		if (!IsNewKey) 
+			return false;
+
+		return newKeyRewrite;
+	}
 private:
 	static const int MAX_CHARS_IN_SAME_PAGE = 800;
 	static const int NoKeyPosition = 1; // No Of Keys stored at offset 1
@@ -476,7 +501,7 @@ private:
 	bool IsNewKey; // check if there is new key added. 
 	FileManager *myFileManager;
 	StorageManager *myStorageManager;
-
+	bool newKeyRewrite;
 	int firstFreeOffset;
 	int secondFreeOffset;
 
