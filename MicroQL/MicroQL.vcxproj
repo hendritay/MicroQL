@@ -110,7 +110,6 @@
     <ClCompile Include="Database\TableResult.cpp" />
     <ClCompile Include="MicroQL.cpp" />
     <ClCompile Include="Parser.cpp" />
-    <ClCompile Include="QueryPlan.cpp" />
     <ClCompile Include="Select.cpp" />
     <ClCompile Include="SelectCondition.cpp" />
     <ClCompile Include="stdafx.cpp">

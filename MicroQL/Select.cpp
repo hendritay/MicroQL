@@ -65,8 +65,10 @@ void Select :: evaluateQueryPlan(int * queryPlanTypePtr)
 	//QueryPlan * qpPtr = &queryPlans.at(0);
 	if(*queryPlanTypePtr != SF)
 	{
-		evaluateWhere(queryPlanTypePtr);
-		evaluateJoin(queryPlanTypePtr);
+		if(*queryPlanTypePtr != SFJ)
+			evaluateWhere(queryPlanTypePtr);
+		if(*queryPlanTypePtr != SFW)
+			evaluateJoin(queryPlanTypePtr);
 	}
 	// only when there is no inner join & where
 	if(*queryPlanTypePtr == SF)
@@ -77,7 +79,7 @@ void Select :: evaluateWhere(int * queryPlanTypePtr)
 	string oper = "=";
 
 	// create MQLCondition for each condition in WHERE
-	for(vector<SelectCondition> :: iterator it = qp.conditions.begin(), end = qp.conditions.end(); it != end;)
+	for(vector<SelectCondition> :: iterator it = qp.conditions.begin(), end = qp.conditions.end(); it != end;++it)
 	{
 		//"" = a / "" = a
 		if(it->isLeftStr || it->isRightStr)
@@ -198,12 +200,13 @@ void Select :: evaluateWhere(int * queryPlanTypePtr)
 			string tableName = qp.selections.at(i);
 			TableDefinition td = tdPtr->getTableDefinition(tableName);
 			int noOfCol = td.getNoOfColumn();
+
+			vector<MQLColumn> v;
 			for(int in = 0; in < noOfCol; in++)
 			{
-				vector<MQLColumn> v;
 				v.push_back(td.getColumnAt(in));
-				columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 			}
+			columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 		}
 	}
 
@@ -223,23 +226,21 @@ void Select :: evaluateWhere(int * queryPlanTypePtr)
 	}
 	else
 	{
+		vector<MQLCondition> con;
 		// load data into TableResult
-		if(columnMap.size() == conditionMap.size())
+		for(map<string, vector<MQLColumn>> :: iterator it = columnMap.begin(), end = columnMap.end(); it != end; ++it)
 		{
-			for(map<string, vector<MQLColumn>> :: iterator it = columnMap.begin(), end = columnMap.end(); it != end; ++it)
-			{
-				map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
+			map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
 			
-				TableResult tr(tdPtr, bTreePtr);
-				tr.loadResult(it->first, it->second, iter->second);	// add 
-				tableResultMap.insert(pair<string, TableResult>(it->first, tr));
+			TableResult tr(tdPtr, bTreePtr);
+			if(iter != conditionMap.end())
+				tr.loadResult(it->first, it->second, iter->second);
+			else
+				tr.loadResult(it->first, it->second, con); 
+			tableResultMap.insert(pair<string, TableResult>(it->first, tr));
 
-			}	// end of for
-		}
-		else
-		{
-			int i =0;
-		}
+		}	// end of for
+
 
 	}
 
@@ -285,23 +286,26 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 				string tableName = qp.selections.at(i);
 				TableDefinition td = tdPtr->getTableDefinition(tableName);
 				int noOfCol = td.getNoOfColumn();
+				vector<MQLColumn> v;
 				for(int in = 0; in < noOfCol; in++)
 				{
-					vector<MQLColumn> v;
 					v.push_back(td.getColumnAt(in));
-					columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 				}
+				columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 			}
 		}
 		
-
+		 vector<MQLCondition> con;
 		// load data into TableResult
 		for(map<string, vector<MQLColumn>> :: iterator it = columnMap.begin(), end = columnMap.end(); it != end; ++it)
 		{
 			map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
 			
 			TableResult tr(tdPtr, bTreePtr);
-			tr.loadResult(it->first, it->second, iter->second);
+			if(iter != conditionMap.end())
+				tr.loadResult(it->first, it->second, iter->second);
+			else
+				tr.loadResult(it->first, it->second, con); 
 			tableResultMap.insert(pair<string, TableResult>(it->first, tr));
 
 		}	// end of for
@@ -310,7 +314,7 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 	vector<pair<string, TableResult> > pairVec;
 	bool firstJoin = false;
 	// inner join bet. 2 tables, call merge
-	for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end;)
+	for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end; ++it)
 	{
 		
 		string leftTableName, rightTableName;
@@ -335,7 +339,15 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 		map<string, TableResult > :: iterator iter = tableResultMap.find(leftTableName);
 		map<string, TableResult > :: iterator iter1 = tableResultMap.find(rightTableName);
 
-		TableResult * tr1Ptr = &iter->second, * tr2Ptr= &iter1->second;
+		TableResult * tr1Ptr, * tr2Ptr;
+		if(iter != tableResultMap.end())
+			tr1Ptr = &iter->second;
+		else
+			tr1Ptr = &tr1;
+		if(iter1 != tableResultMap.end())
+			tr2Ptr = &iter1->second;
+		else
+			tr2Ptr = &tr2;
 		TableResult tr3(tdPtr, bTreePtr);
 		tr3.TableResult::merge(tr1Ptr, tr2Ptr, tdPtr, bTreePtr);
 		
@@ -398,9 +410,7 @@ void Select :: evaluateSelect()
 			vector<MQLColumn> v;
 			for(int in = 0; in < noOfCol; in++)
 			{
-				
-				v.push_back(td.getColumnAt(in));
-				
+				v.push_back(td.getColumnAt(in));			
 			}
 			columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 		}
@@ -548,36 +558,62 @@ bool Select :: parseSemantics()
 
 		}
 	}
-
+	bool executeThis;
 	// if there is inner join, check that 1 is from table A, 1 is from table B
 	for(int i = 0; i < qp.joins.size(); i++)
 	{
+		executeThis = true;
 		string leftTableName = tdPtr->getTableByColumnName(qp.joins.at(i).leftValue); 
 		string rightTableName = tdPtr->getTableByColumnName(qp.joins.at(i).rightValue);
 		if(leftTableName.compare(rightTableName) == 0)
 		{
+			string leftValue = qp.joins.at(i).leftValue;
+			string rightValue = qp.joins.at(i).rightValue;
+			if(leftValue.compare(rightValue) != 0)
+			{
 				return false;
-		}
-		int leftIndex = -1, rightIndex = -1;
-		for(int in = 0; in < qp.selections.size(); in++)
-		{
-			if(qp.selections.at(in).compare(leftTableName) == 0)
-			{
-				leftIndex = in;
 			}
-			if(qp.selections.at(in).compare(rightTableName) == 0)
+			// remove to become a single table-> SELECT employeeid FROM EmployeeInformation INNER JOIN EmployeeInformation ON employeeid = employeeid
+			else
 			{
-				rightIndex = in;
+				
+				// remove joins
+				qp.joins.erase(qp.joins.begin() + i);
+				// remove from selections
+				for(int i = 0; i < qp.selections.size(); i++)
+				{
+					if(qp.selections.at(i).compare(leftTableName) == 0)
+					{
+						qp.selections.erase(qp.selections.begin() + i);
+						break;
+					}
+				}
+				executeThis = false;
 			}
 		}
-		if(leftIndex == rightIndex || leftIndex == -1 || rightIndex == -1)
+		if(executeThis)
 		{
-			return false;
+			int leftIndex = -1, rightIndex = -1;
+			for(int in = 0; in < qp.selections.size(); in++)
+			{
+				if(qp.selections.at(in).compare(leftTableName) == 0)
+				{
+					leftIndex = in;
+				}
+				if(qp.selections.at(in).compare(rightTableName) == 0)
+				{
+					rightIndex = in;
+				}
+			}
+			if(leftIndex == rightIndex || leftIndex == -1 || rightIndex == -1)
+			{
+				return false;
+			}
 		}
-		
 
 	}
 
+	/*
 	// check FROM clause
 	for(int i = 0; i < qp.selections.size(); i++)
 	{
@@ -586,7 +622,7 @@ bool Select :: parseSemantics()
 			return false;
 		}
 	}
-
+	*/
 	return true;
 }
 
@@ -620,7 +656,19 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 	bool hasJoin = false, hasWhere = false;
 	for(int i = 0; i < tokensPtr->size(); i++)
 	{
+		
 		string currentValue = tokensPtr->at(i);
+		if(i == tokensPtr->size() - 1)
+		{
+			if(currentValue.at(currentValue.size()-1) == ';')
+			{
+				currentValue = currentValue.substr(0, currentValue.size()-1);
+			}
+			else
+			{
+				return false;
+			}
+		}
 		string upperValue = currentValue;
 		stringToUpper(upperValue);
 		
@@ -716,7 +764,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 				}
 				else if (!isFirstValue && upperValue.compare("AND") == 0)
 				{
-
+					isInnerJoin = false;
 				}
 				else
 				{
@@ -782,6 +830,15 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						else
 						{
 							value = temp[0];
+							if(tdPtr->columnExists(value))
+							{
+								qp.projections.push_back(value);
+							}
+							else
+							{
+								return false;
+							}
+
 						}
 					}
 					else
@@ -924,7 +981,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 					
 					bool isLeftStr, isRightStr;
 					// can be b = a/ a = "" / "" = a
-					if(currentValue.compare("\"") == 0)
+					if(currentValue.compare("'") == 0)
 					{
 						// find end of "
 						string a;
@@ -932,7 +989,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						while(i < tokensPtr->size())
 						{
 							currentValue = tokensPtr->at(i);
-							if(currentValue.compare("\"") != 0)
+							if(currentValue.compare("'") != 0)
 							{
 								a += currentValue;
 							}
@@ -946,8 +1003,10 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						isLeftStr = true;
 					}
 					// "abc"
-					else if (currentValue.find_first_of("\"") !=  currentValue.find_last_of("\""))
+					else if (currentValue.find_first_of("'") !=  currentValue.find_last_of("'"))
 					{
+						string t = currentValue.substr(currentValue.find_first_of("'")+1);
+						currentValue = t.substr(0, t.find_last_of("'"));
 						isLeftStr = true;
 					}
 					else
@@ -983,7 +1042,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 					{
 						
 						currentValue2 = tokensPtr->at(i);
-						if(currentValue2.compare("\"") == 0)
+						if(currentValue2.compare("'") == 0)
 						{
 							// find end of "
 							string a;
@@ -991,7 +1050,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 							while(i < tokensPtr->size())
 							{
 								currentValue2 = tokensPtr->at(i);
-								if(currentValue2.compare("\"") != 0)
+								if(currentValue2.compare("'") != 0)
 								{
 									a += currentValue2;
 								}
@@ -1005,8 +1064,10 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 							isRightStr = true;
 						}
 						// "abc"
-						else if (currentValue2.find_first_of("\"") !=  currentValue2.find_last_of("\""))
+						else if (currentValue2.find_first_of("'") !=  currentValue2.find_last_of("'"))
 						{
+							string t = currentValue2.substr(currentValue2.find_first_of("'")+1);
+							currentValue2 = t.substr(0, t.find_last_of("'"));
 							isRightStr = true;
 						}
 						else

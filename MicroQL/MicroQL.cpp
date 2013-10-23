@@ -105,6 +105,60 @@ int _tmain(int argc, _TCHAR* argv[])
 			delete id;
 		}else if (CommonUtility::trim(command).find("SELECT") != string::npos){
 			// for kimli
+			// insertion
+			//command = "INSERT INTO EmployeeInformation (employeeid, name, age) VALUES ('1', 'KimmY', '20')";
+
+
+			// ****attribute name, table name are case sensitive,must have a space between each word
+			// valid 
+			// SF
+			//command = "SELECT * FROM EmployeeInformation";
+			//command = "SELECT * from EmployeeInformation";
+			//command = "SELECT employeeid, age FROM EmployeeInformation";
+			//command = "SELECT age, employeeid FROM EmployeeInformation";
+			//command = "SELECT age,employeeid FROM EmployeeInformation";
+
+			// SFW
+			//command = "SELECT * FROM EmployeeInformation WHERE employeeid = '1'";
+			//command = "SELECT age, employeeid FROM EmployeeInformation WHERE employeeid = '10'";
+			//command = "SELECT age, employeeid FROM EmployeeInformation WHERE age = '10'";
+			//command = "SELECT age, employeeid FROM EmployeeInformation WHERE age = '12345678910'";
+			//command = "SELECT employeeid FROM EmployeeInformation WHERE employeeid = age";	// may have result
+			//command = "SELECT age, employeeid FROM EmployeeInformation WHERE age = '10' AND employeeid = '1'";
+
+
+			// SFJ
+			//command = "SELECT * FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid";
+			//command = "SELECT employeeid, salepersonid FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid";
+			//command = "SELECT employeeid, qty FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid";
+			//command = "SELECT employeeid FROM EmployeeInformation INNER JOIN Sale ON saleid = employeeid";
+			//command = "SELECT employeeid,qty , FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid INNER JOIN ON ";
+			//command = "SELECT * FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid INNER JOIN ON ";
+
+
+			// SFJW
+			//command = "SELECT * FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid WHERE employeeid = '1'";
+			//command = "SELECT salepersonid, name, qty FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid WHERE employeeid = '1' AND salepersonid = '1' ";
+			//command = "SELECT * FROM EmployeeInformation INNER JOIN Sale ON salepersonid = employeeid WHERE employeeid = '1' AND salepersonid = '1' and age = '10'";
+
+			// remove redundancy
+			//command = "SELECT employeeid FROM EmployeeInformation INNER JOIN EmployeeInformation ON employeeid = employeeid";	// just get from a single table
+			//command = "SELECT * FROM Sale INNER JOIN EmployeeInformation ON salepersonid = employeeid AND employeeid = salepersonid AND employeeid = '1'";
+
+			// invalid syntax, type
+			//command = "SELECT EmployeeId FROM EmployeeInformation"; // attribute does not exist
+			//command = "SELECT employeeid FROM EmployeeInformation WHERE abc = def";	// attributes does not exist
+			//command = "SELECT employeeid FROM Employee"; // table does not exist
+
+			// invalid semantics
+			//command = "SELECT qty FROM EmployeeInformation";	// qty does not belong to table
+			//command = "SELECT employeeid FROM EmployeeInformation WHERE qty = '50'"; // qty does not belong to table
+			//command = "SELECT employeeid FROM EmployeeInformation WHERE qty = age"; // qty does not belong to table
+		
+			//command = "SELECT employeeid FROM EmployeeInformation INNER JOIN Sale ON qty = employeeid";	// both from same table, diff datatype
+			//command = "SELECT employeeid FROM EmployeeInformation INNER JOIN Sale ON name = employeeid";	// both from same table, same datatype
+			
+			/*
 			TableResult tr(tdictionary, bt);
 
 			// CONSTRUCTING 
@@ -149,7 +203,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 			// merging
-
+			*/
 		
 			// for kimli 
 		}else if (CommonUtility::trim(command).find("STAR") != string::npos) {		

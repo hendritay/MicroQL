@@ -1,33 +1,49 @@
-﻿Build started 10/23/2013 5:23:47 PM.
-     1>Project "C:\Study\CS4221\MicroQL\MicroQL\MicroQL.vcxproj" on node 2 (build target(s)).
+﻿Build started 10/23/2013 5:56:13 PM.
+     1>Project "C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\MicroQL.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Study\CS4221\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt MicroQL.cpp Parser.cpp
-         MicroQL.cpp
-     1>c:\study\cs4221\microql\microql\storage\btree.h(5): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\storage\btree.h(7): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\storage\btree.h(8): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\storage\btree.h(9): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\database\mqltuplemanager.h(6): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\database\mqltuple.h(43): warning C4101: 'columnLength' : unreferenced local variable
-     1>c:\study\cs4221\microql\microql\database\mqltuplemanager.h(11): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(12): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(13): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(14): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(16): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(17): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(18): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(19): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-     1>c:\study\cs4221\microql\microql\microql.cpp(21): warning C4067: unexpected tokens following preprocessor directive - expected a newline
-         Generating Code...
-         Skipping... (no relevant changes detected)
-         Parser.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /IC:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\ /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\MicroQL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Select.cpp
+         Select.cpp
+     1>c:\users\kim\documents\github\microql\microql\storage\btree.h(5): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\storage\btree.h(7): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\storage\btree.h(8): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\storage\btree.h(9): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\database\mqltuplemanager.h(6): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\database\mqltuple.h(43): warning C4101: 'columnLength' : unreferenced local variable
+     1>c:\users\kim\documents\github\microql\microql\database\mqltuplemanager.h(11): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(198): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(284): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(404): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(440): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(445): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(463): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(472): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(513): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(563): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(583): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(597): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(657): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(677): warning C4018: '>=' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(699): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(714): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(739): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(811): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(941): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(955): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(989): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(1027): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(1041): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(1050): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(1128): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(197) : see declaration of 'strtok'
+     1>c:\users\kim\documents\github\microql\microql\select.cpp(1134): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(197) : see declaration of 'strtok'
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Study\CS4221\MicroQL\MicroQL\Debug\MicroQL.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\MicroQL.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Study\CS4221\MicroQL\MicroQL\Debug\MicroQL.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Study\CS4221\MicroQL\MicroQL\Debug\MicroQL.lib" /MACHINE:X86 Debug\MicroQL.exe.embed.manifest.res
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\Debug\MicroQL.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\MicroQL.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\Debug\MicroQL.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\Debug\MicroQL.lib" /MACHINE:X86 Debug\MicroQL.exe.embed.manifest.res
          Debug\CommonUtility.obj
          Debug\InsertDefinition.obj
          Debug\TableDefinition.obj
@@ -35,7 +51,6 @@
          Debug\TableResult.obj
          Debug\MicroQL.obj
          Debug\Parser.obj
-         Debug\QueryPlan.obj
          Debug\Select.obj
          Debug\SelectCondition.obj
          Debug\stdafx.obj
@@ -49,12 +64,12 @@
          All outputs are up-to-date.
        LinkEmbedManifest:
          All outputs are up-to-date.
-         MicroQL.vcxproj -> C:\Study\CS4221\MicroQL\MicroQL\Debug\MicroQL.exe
+         MicroQL.vcxproj -> C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\Debug\MicroQL.exe
        FinalizeBuildStatus:
          Deleting file "Debug\MicroQL.unsuccessfulbuild".
          Touching "Debug\MicroQL.lastbuildstate".
-     1>Done Building Project "C:\Study\CS4221\MicroQL\MicroQL\MicroQL.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Kim\Documents\GitHub\MicroQL\MicroQL\MicroQL.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:03.21
+Time Elapsed 00:00:03.71

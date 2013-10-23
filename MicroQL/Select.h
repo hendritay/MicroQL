@@ -82,21 +82,21 @@ class Select{
 	validVec.push_back("Select a, b, c from ra");
 	validVec.push_back("Select a,b,c from ra");
 	validVec.push_back("Select a from ra where c = d");
-	validVec.push_back("Select a from ra where c = \"123\"");
-	validVec.push_back("Select a from ra where \"123\" = c");
-	validVec.push_back("Select a from ra where \"123\" = c and \"abc\" = b");
-	validVec.push_back("Select a from ra where \"123\" = c and b = d");
-	validVec.push_back("Select a from ra where \"123\" = c and b = c");
+	validVec.push_back("Select a from ra where c = '123'");
+	validVec.push_back("Select a from ra where '123' = c");
+	validVec.push_back("Select a from ra where '123' = c and 'abc' = b");
+	validVec.push_back("Select a from ra where '123' = c and b = d");
+	validVec.push_back("Select a from ra where '123' = c and b = c");
 	validVec.push_back("Select a from ra inner join rb on a = e");
 	validVec.push_back("Select * from ra inner join rb on e = a");
 	validVec.push_back("Select * from ra inner join rb on b = f");	
-	validVec.push_back("Select a from ra inner join rb on e = d where \"123\" = d");
+	validVec.push_back("Select a from ra inner join rb on e = d where '123' = d");
 	validVec.push_back("Select a from ra inner join rb on e = d where f = g");
-	validVec.push_back("Select a from ra inner join rb on e = d where \"ABC\" = e");
-	validVec.push_back("Select a from ra inner join rb on e = d where \"ABC\" = b");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\"");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\" and b = e");
-	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = \"abcd\" and d = f");
+	validVec.push_back("Select a from ra inner join rb on e = d where 'ABC' = e");
+	validVec.push_back("Select a from ra inner join rb on e = d where 'ABC' = b");
+	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = 'abcd'");
+	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = 'abcd' and b = e");
+	validVec.push_back("Select a from ra inner join rb on e = d where f = g and f = 'abcd' and d = f");
 
 	// invalid syntax
 	invalidVec.push_back(" ");
@@ -122,9 +122,9 @@ class Select{
 	invalidVec.push_back("Select a from ra inner join rb on a");
 	invalidVec.push_back("Select a from ra inner join rb on a = ");
 	invalidVec.push_back("Select a from ra inner join rb on a = 123");
-	invalidVec.push_back("Select a from ra inner join rb on a = \"123\"");
-	invalidVec.push_back("Select a from ra inner join rb on \"123\" = a");
-	invalidVec.push_back("Select a from ra inner join rb on d = \"abc\"");
+	invalidVec.push_back("Select a from ra inner join rb on a = '123'");
+	invalidVec.push_back("Select a from ra inner join rb on '123' = a");
+	invalidVec.push_back("Select a from ra inner join rb on d = 'abc'");
 	invalidVec.push_back("Select a from ra inner join rb on d = b.e");
 */
 	// invalid semantics & type

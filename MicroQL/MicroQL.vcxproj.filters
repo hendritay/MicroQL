@@ -102,9 +102,6 @@
     <ClCompile Include="Storage\FileManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QueryPlan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Storage\StorageManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
