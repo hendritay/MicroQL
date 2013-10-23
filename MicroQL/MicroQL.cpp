@@ -92,6 +92,46 @@ int _tmain(int argc, _TCHAR* argv[])
 			delete id;
 		}else if (CommonUtility::trim(command).find("SELECT") != string::npos){
 			// for kimli
+			TableDefinition *td = new TableDefinition("EmployeeInformation");
+			string columnName = "employeeid";
+			MQLColumn column1(columnName, CT_VARCHAR, 20, true);
+
+			string columnName2 = "age";
+			MQLColumn column2(columnName2, CT_VARCHAR, 10, false);
+	
+			td->addColumn(column1);
+			td->addColumn(column2);
+
+			TableDefinition *td2 = new TableDefinition("Sale");
+			columnName = "saleid";
+			MQLColumn column3(columnName, CT_VARCHAR, 28, true);
+
+			columnName2 = "qty";
+			MQLColumn column4(columnName2, CT_VARCHAR, 30, false);
+	
+			td2->addColumn(column3);
+			td2->addColumn(column4);
+	
+	
+			TableDictionary *tdictionary = new TableDictionary(fm, sm);
+			tdictionary->storeTableToDictionary(td);
+			tdictionary->storeTableToDictionary(td2);
+
+			Select select = Select(tdictionary, bt);
+			TableResult * tr = select.evaluateQuery(command);
+			if(tr == NULL)
+			{
+				cout << "Syntax or Semantics error\n";
+				continue;
+			}
+			else
+			{
+				cout << "complete\n";
+				continue;
+				//tr.print();
+
+			}
+			/*
 			TableResult tr(tdictionary, bt);
 
 			// CONSTRUCTING 
@@ -142,7 +182,7 @@ int _tmain(int argc, _TCHAR* argv[])
 					trNew.addMergedRow(&tr, i, &trcar, j);
 				}
 			}
-
+			*/
 
 			// for kimli 
 		}else if (CommonUtility::trim(command).find("quit") != string::npos){
