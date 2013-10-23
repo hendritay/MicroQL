@@ -8,88 +8,76 @@
 
 #include <map>
 #include <string>
-Select :: Select(){ }
+#include <set>
+//Select :: Select(){ }
 
-Select :: Select(TableDictionary * tdPtr1){tdPtr = tdPtr1;}
+Select :: Select(TableDictionary * tdPtr1, BTree *bTreePtr1){tdPtr = tdPtr1; bTreePtr1 = bTreePtr;}
 
-bool Select :: evaluateQuery(string query) 
+TableResult * Select :: evaluateQuery(string query) 
 {
 	
 	tableResultMap.clear();
 	columnMap.clear();
 	conditionMap.clear();
-	queryPlans.clear();
-
-	// *** 1. normalization ***
-	// need to do what?
 
 	// *** 2. parse the query & generate query plan ***
 	// split the query
 	vector<string> tokens = splitString(query, " ");
 	vector<string> * tokensPtr = &tokens;
-	TableResult * trPtr ;
-	TableResult tr;
-	//trPtr = &tr;
+	TableResult * trPtr;
 	int queryPlanType;
 	int * queryPlanTypePtr = &queryPlanType;
+	isEmptyResult = false;
+
 	// check for syntax and store in a query plan
 	if(!parseSyntaxAndType(query, tokensPtr, queryPlanTypePtr))
-		return false;
+		return NULL;
 		//throw "Invalid Syntax or Type used";
 
-	// check query plan for schema
+	// 3. check semantics, remove redundancy
 	if(!parseSemantics())
-		throw "Invalid Semantics";
-
-	// *** 3. remove redundancy ***
-	// need to use rules and check if it fulfils 1 rule, change it to the simplified version
-	removeRedundancy();
-
-	// *** 4. generate the other query plans ***
-	//generateQueryPlan();
-
+		if(!isEmptyResult)
+			return NULL;
+		else
+		{
+			TableResult tr(tdPtr, bTreePtr);
+			trPtr = &tr;
+			return trPtr;
+		}
 
 	// *** evaluate the query ***
 	evaluateQueryPlan(queryPlanTypePtr);
 	
-
+	trPtr = &finalResult;
+	if(trPtr == NULL)
+	{
+		TableResult tr(tdPtr, bTreePtr);
+		trPtr = &tr;
+	}
 	// *** return a copy of the resultTable values ***
-	return true;
-	//return *trPtr;
-
-}
-void Select :: removeRedundancy()
-{
-	// change thoery/concept to code
-	QueryPlan * qpPtr = &queryPlans.at(0);
-	// remove exact duplicated where conditions (a = b AND a = b)
-	// remove a = a
-	// remove duplicated where conditions (a = " " AND " " = a, a = b AND b = a)
-	// p and p <=> true
-
-	// always false
-	// a = "123" and a = "abc"
-
-	// if either is false, all false a = b and b = c 
+	//return true;
+	return trPtr;
 
 }
 
 void Select :: evaluateQueryPlan(int * queryPlanTypePtr)
 {
-	QueryPlan * qpPtr = &queryPlans.at(0);
-	evaluateWhere(qpPtr, queryPlanTypePtr);
-	evaluateJoin(qpPtr, queryPlanTypePtr);
-
+	//QueryPlan * qpPtr = &queryPlans.at(0);
+	if(*queryPlanTypePtr != SF)
+	{
+		evaluateWhere(queryPlanTypePtr);
+		evaluateJoin(queryPlanTypePtr);
+	}
 	// only when there is no inner join & where
 	if(*queryPlanTypePtr == SF)
-		evaluateSelect(qpPtr);
+		evaluateSelect();
 }
-void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
+void Select :: evaluateWhere(int * queryPlanTypePtr)
 {	
 	string oper = "=";
 
 	// create MQLCondition for each condition in WHERE
-	for(vector<SelectCondition> :: iterator it = qpPtr->conditions.begin(), end = qpPtr->conditions.end(); it != end;)
+	for(vector<SelectCondition> :: iterator it = qp.conditions.begin(), end = qp.conditions.end(); it != end;)
 	{
 		//"" = a / "" = a
 		if(it->isLeftStr || it->isRightStr)
@@ -183,7 +171,7 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 
 
 	// loop through Select, add each column to the correct table
-	for(vector<string> :: iterator it = qpPtr->projections.begin(), end = qpPtr->projections.end(); it != end; ++it)
+	for(vector<string> :: iterator it = qp.projections.begin(), end = qp.projections.end(); it != end; ++it)
 	{
 		string tableName = tdPtr->getTableByColumnName(*it);	
 
@@ -203,11 +191,11 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 	}	// end of for
 	
 	// Select *
-	if(qpPtr->projections.size() == 0)
+	if(qp.projections.size() == 0)
 	{
-		for(int i =0; i < qpPtr->selections.size(); i++)
+		for(int i =0; i < qp.selections.size(); i++)
 		{
-			string tableName = qpPtr->selections.at(i);
+			string tableName = qp.selections.at(i);
 			TableDefinition td = tdPtr->getTableDefinition(tableName);
 			int noOfCol = td.getNoOfColumn();
 			for(int in = 0; in < noOfCol; in++)
@@ -218,44 +206,7 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 			}
 		}
 	}
-	/*
-	if(*queryPlanTypePtr == SFJW)
-	{
-		for(vector<SelectCondition> :: iterator it = qpPtr->joins.begin(), end = qpPtr->joins.end(); it != end; ++it)
-		{
-			string leftTableName, rightTableName;
-			//leftTableName = getTableNameByColumn(it->leftValue);	
-			//rightTableName = getTableNameByColumn(it->rightValue);	
-			map<string, vector<MQLColumn> > :: iterator iter = columnMap.find(leftTableName);
-			if(iter != columnMap.end())
-			{
-				MQLColumn col(it->leftValue, CT_VARCHAR);
-				iter->second.push_back(col);
-			}
-			else
-			{
-				MQLColumn col(it->leftValue, CT_VARCHAR);
-				vector<MQLColumn> v;
-				v.push_back(col);
-				columnMap.insert(pair<string, vector<MQLColumn>> (leftTableName, v));
-			}
 
-			iter = columnMap.find(rightTableName);
-			if(iter != columnMap.end())
-			{
-				MQLColumn col(it->rightValue, CT_VARCHAR);
-				iter->second.push_back(col);
-			}
-			else
-			{
-				MQLColumn col(it->rightValue, CT_VARCHAR);
-				vector<MQLColumn> v;
-				v.push_back(col);
-				columnMap.insert(pair<string, vector<MQLColumn>> (rightTableName, v));
-			}
-		}	// end of for
-	}
-	*/
 	
 	if(*queryPlanTypePtr == SFW)
 	{
@@ -263,7 +214,7 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 		{
 			map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
 			
-			TableResult tr;
+			TableResult tr(tdPtr, bTreePtr);
 			tr.loadResult(it->first, it->second, iter->second);	
 			finalResult = tr;
 
@@ -279,7 +230,7 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 			{
 				map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
 			
-				TableResult tr;
+				TableResult tr(tdPtr, bTreePtr);
 				tr.loadResult(it->first, it->second, iter->second);	// add 
 				tableResultMap.insert(pair<string, TableResult>(it->first, tr));
 
@@ -292,64 +243,9 @@ void Select :: evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr)
 
 	}
 
-	//  a = b (both are not in same table) does not exist in WHERE clause. Only allowed in INNER JOIN 
-	/*
-	for(vector<SelectCondition> :: iterator it = qpPtr->conditions.begin(), end = qpPtr->conditions.end(); it != end;)
-	{
-		// TODO: find the tableName that leftValue,rightValue exist
-		string leftTableName, rightTableName;
-
-
-		map<string, TableResult > :: iterator iter = tableResultsPtr->find(leftTableName);
-		map<string, TableResult > :: iterator iter1 = tableResultsPtr->find(rightTableName);
-		if(iter != tableResultsPtr->end())
-		{
-			if(iter1 != tableResultsPtr->end())
-			{
-				// get entire col of iter & iter1
-				// loop through col of iter
-					// loop through col of iter1
-						// if both are equal
-							// save rowPtr/num of both
-			}
-			else
-			{
-				// create new tableResult, load data
-				TableResult tb();
-				//tableResultsPtr->insert(pair<string, TableResult>(rightTableName, tb));
-				//tb.second.loadResult(rightTableName);
-
-				// copy loop
-			}
-		}
-		else
-		{
-			// create new tableResult, load data
-			TableResult tb();
-			//tableResultsPtr->insert(pair<string, TableResult>(leftTableName, tb));
-			//tb.second.loadResult(leftTableName)
-
-			if(iter1 != tableResultsPtr->end())
-			{
-				// loop
-			}
-			else
-			{
-				// create new tableResult, load data
-				TableResult tb1();
-				//tableResultsPtr->insert(pair<string, TableResult>(rightTableName, tb1));
-				//tb1.second.loadResult(rightTableName)
-
-				// loop
-			}
-		}
-		
-
-	}	// end of for
-	*/
 }
 
-void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
+void Select :: evaluateJoin(int *queryPlanTypePtr)
 {
 
 	// a join b join c. For 1st joining there are 3 ways, which to pick? doesn't matter the order, same number of checking needs to be done
@@ -362,7 +258,7 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 
 	if(*queryPlanTypePtr == SFJ)
 	{
-		for(vector<string> :: iterator temp = qpPtr->projections.begin(), end = qpPtr->projections.end(); temp != end; ++temp)
+		for(vector<string> :: iterator temp = qp.projections.begin(), end = qp.projections.end(); temp != end; ++temp)
 		{
 			string tableName = tdPtr->getTableByColumnName(*temp);	
 
@@ -382,11 +278,11 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 		}	// end of for
 
 		// Select *
-		if(qpPtr->projections.size() == 0)
+		if(qp.projections.size() == 0)
 		{
-			for(int i =0; i < qpPtr->selections.size(); i++)
+			for(int i =0; i < qp.selections.size(); i++)
 			{
-				string tableName = qpPtr->selections.at(i);
+				string tableName = qp.selections.at(i);
 				TableDefinition td = tdPtr->getTableDefinition(tableName);
 				int noOfCol = td.getNoOfColumn();
 				for(int in = 0; in < noOfCol; in++)
@@ -397,48 +293,14 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 				}
 			}
 		}
-		/*
-		for(vector<SelectCondition> :: iterator it = qpPtr->joins.begin(), end = qpPtr->joins.end(); it != end; ++it)
-		{
-			string leftTableName, rightTableName;
-			//leftTableName = getTableNameByColumn(it->leftValue);	
-			//rightTableName = getTableNameByColumn(it->rightValue);	
-			map<string, vector<MQLColumn> > :: iterator iter = columnMap.find(leftTableName);
-			if(iter != columnMap.end())
-			{
-				MQLColumn col(it->leftValue, CT_VARCHAR);
-				iter->second.push_back(col);
-			}
-			else
-			{
-				MQLColumn col(it->leftValue, CT_VARCHAR);
-				vector<MQLColumn> v;
-				v.push_back(col);
-				columnMap.insert(pair<string, vector<MQLColumn>> (leftTableName, v));
-			}
-
-			iter = columnMap.find(rightTableName);
-			if(iter != columnMap.end())
-			{
-				MQLColumn col(it->rightValue, CT_VARCHAR);
-				iter->second.push_back(col);
-			}
-			else
-			{
-				MQLColumn col(it->rightValue, CT_VARCHAR);
-				vector<MQLColumn> v;
-				v.push_back(col);
-				columnMap.insert(pair<string, vector<MQLColumn>> (rightTableName, v));
-			}
-		}	// end of for
-		*/
+		
 
 		// load data into TableResult
 		for(map<string, vector<MQLColumn>> :: iterator it = columnMap.begin(), end = columnMap.end(); it != end; ++it)
 		{
 			map<string, vector<MQLCondition> > :: iterator iter = conditionMap.find(it->first);
 			
-			TableResult tr;
+			TableResult tr(tdPtr, bTreePtr);
 			tr.loadResult(it->first, it->second, iter->second);
 			tableResultMap.insert(pair<string, TableResult>(it->first, tr));
 
@@ -448,7 +310,7 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 	vector<pair<string, TableResult> > pairVec;
 	bool firstJoin = false;
 	// inner join bet. 2 tables, call merge
-	for(vector<SelectCondition> :: iterator it = qpPtr->joins.begin(), end = qpPtr->joins.end(); it != end;)
+	for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end;)
 	{
 		
 		string leftTableName, rightTableName;
@@ -462,7 +324,7 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 		vector<MQLCondition> cons;
 		vector<MQLColumn> cols;
 		cols.push_back(leftCol);
-		TableResult tr1, tr2;
+		TableResult tr1(tdPtr, bTreePtr), tr2(tdPtr, bTreePtr);
 		
 		tr1.loadResult(leftTableName, cols, cons);
 		cols.clear();
@@ -474,8 +336,8 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 		map<string, TableResult > :: iterator iter1 = tableResultMap.find(rightTableName);
 
 		TableResult * tr1Ptr = &iter->second, * tr2Ptr= &iter1->second;
-		TableResult tr3;
-		//tr3.merge(tr1Ptr, tr2Ptr);
+		TableResult tr3(tdPtr, bTreePtr);
+		tr3.TableResult::merge(tr1Ptr, tr2Ptr, tdPtr, bTreePtr);
 		
 		// loop through and check for equal values
 		for(int i = 0; i < tr1.getNoOfRows(); i++)
@@ -498,16 +360,16 @@ void Select :: evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr)
 	}
 
 }
-void Select :: evaluateSelect(QueryPlan * qpPtr)
+void Select :: evaluateSelect()
 {
 	// 1. Query Plan -> SELECT FROM  
 	// Select from 1 table only
 
 	// loop through Select, add each column to the correct table
-	string tableName;
+	string tableName = qp.selections.at(0);
 	map<string, vector<MQLColumn> > :: iterator iter = columnMap.find(tableName);
 
-	for(vector<string> :: iterator it = qpPtr->projections.begin(), end = qpPtr->projections.end(); it != end; ++it)
+	for(vector<string> :: iterator it = qp.projections.begin(), end = qp.projections.end(); it != end; ++it)
 	{
 		tableName = tdPtr->getTableByColumnName(*it);			
 		if(iter != columnMap.end())
@@ -525,42 +387,35 @@ void Select :: evaluateSelect(QueryPlan * qpPtr)
 	}	// end of for
 
 	// Select *
-	if(qpPtr->projections.size() == 0)
+	if(qp.projections.size() == 0)
 	{
-		for(int i =0; i < qpPtr->selections.size(); i++)
+		for(int i =0; i < qp.selections.size(); i++)
 		{
-			string tableName = qpPtr->selections.at(i);
+			string tableName = qp.selections.at(i);
 			TableDefinition td = tdPtr->getTableDefinition(tableName);
 			int noOfCol = td.getNoOfColumn();
 
+			vector<MQLColumn> v;
 			for(int in = 0; in < noOfCol; in++)
 			{
-				vector<MQLColumn> v;
+				
 				v.push_back(td.getColumnAt(in));
-				columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
+				
 			}
+			columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 		}
 	}
-
-	TableResult tr;
+	if(iter == columnMap.end())
+	{
+		iter = columnMap.find(tableName);
+	}
+	TableResult tr(tdPtr, bTreePtr);
 	vector<MQLCondition> v;
 	tr.loadResult(tableName, iter->second, v);
 	finalResult = tr;
 
 }
-/*
-void Select :: generateQueryPlan()
-{
-	// create a query plan
-	QueryPlan queryPlan;
-	queryPlans.push_back(queryPlan);
 
-	// loop through the Query Tree and add to Query Plan
-	// addProjection(columnName);
-	// addSelection(tableName);
-	// addCondition(conditionList);
-}
-*/
 bool Select :: parseSemantics()
 {
 	// check whether whether tree is disjoint 
@@ -569,8 +424,7 @@ bool Select :: parseSemantics()
 
 	// check for Select a from b where c = "" whether a & c is from table b
 	// check for Select a from b inner join c on d = e where f = "" . a,d,e,f must be from c OR d
-	
-	QueryPlan qp = queryPlans.at(0);
+
 	
 	// check SELECT clause
 	for(int i = 0; i < qp.projections.size(); i++)
@@ -593,15 +447,18 @@ bool Select :: parseSemantics()
 
 	}	// end of for
 
+
+	map <string, string> attrMap;
 	// check WHERE clause
 	for(int i = 0; i < qp.conditions.size(); i++)
 	{
-		
+		SelectCondition sc = qp.conditions.at(i);
 		string leftTableName, rightTableName;
 		bool found = false, bothNotStr = false;
-		if(!qp.conditions.at(i).isLeftStr)
+
+		if(!sc.isLeftStr)
 		{
-			string leftTableName = tdPtr->getTableByColumnName(qp.conditions.at(i).leftValue);
+			string leftTableName = tdPtr->getTableByColumnName(sc.leftValue);
 			for(int in = 0; in < qp.selections.size(); in++)
 			{
 				if(qp.selections.at(in).compare(leftTableName) == 0)
@@ -614,12 +471,35 @@ bool Select :: parseSemantics()
 			{
 				return false;
 			}
+			
+			// a = "123" and a = "abc" (always false)
+			// a = "abc" and a = "abc" (remove one)
+
+			if(sc.isRightStr)
+			{
+				pair<map<string, string>::iterator,bool> ret = attrMap.insert(pair<string, string>(sc.leftValue, sc.rightValue));
+				if (ret.second==false)
+				{
+					// duplicated condition, remove
+					if(ret.first->second.compare(sc.rightValue) == 0)
+					{
+						qp.conditions.erase(qp.conditions.begin() + i);
+					}
+					// same attribute but different string, will always be false
+					else
+					{
+						isEmptyResult = true;
+						return false;
+					}
+					
+				}
+			}
 		}
 
 		found = false;
-		if(!qp.conditions.at(i).isRightStr)
+		if(!sc.isRightStr)
 		{
-			string rightTableName = tdPtr->getTableByColumnName(qp.conditions.at(i).rightValue);
+			string rightTableName = tdPtr->getTableByColumnName(sc.rightValue);
 			for(int in = 0; in < qp.selections.size(); in++)
 			{
 				if(qp.selections.at(in).compare(rightTableName) == 0)
@@ -632,8 +512,30 @@ bool Select :: parseSemantics()
 			{
 				return false;
 			}
-			if(!qp.conditions.at(i).isLeftStr)
+			if(!sc.isLeftStr)
 				bothNotStr = true;
+
+			// always false
+			// a = "123" and a = "abc"
+			if(sc.isLeftStr)
+			{
+				pair<map<string, string>::iterator,bool> ret = attrMap.insert(pair<string, string>(sc.rightValue, sc.leftValue));
+				if (ret.second==false)
+				{
+					// duplicated condition, remove
+					if(ret.first->second.compare(sc.leftValue) == 0)
+					{
+						qp.conditions.erase(qp.conditions.begin() + i);
+					}
+					// same attribute but different string, will always be false
+					else
+					{
+						isEmptyResult = true;
+						return false;
+					}
+					
+				}
+			}
 		}
 
 		if(bothNotStr)
@@ -643,6 +545,7 @@ bool Select :: parseSemantics()
 			{
 				return false;
 			}
+
 		}
 	}
 
@@ -674,6 +577,16 @@ bool Select :: parseSemantics()
 		
 
 	}
+
+	// check FROM clause
+	for(int i = 0; i < qp.selections.size(); i++)
+	{
+		if(!tdPtr->tableExists(qp.selections.at(i)))
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -689,8 +602,6 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 	// select * from a inner join b on a.c = b.c (R.A is not allowed for now)
 
 
-	QueryPlan qp;
-	queryPlans.push_back(qp);
 
 	vector<string> compulsoryClauses, optionalClauses;
 	compulsoryClauses.push_back("SELECT"); // follow by */a/r.a
@@ -760,7 +671,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						/*
+						
 						if(tdPtr->tableExists(currentValue1))
 						{
 							qp.selections.push_back(currentValue1);
@@ -769,7 +680,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						*/
+						
 					}
 					else
 					{
@@ -855,7 +766,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 								{
 									return false;
 								}
-								/*
+								
 								if(tdPtr->columnExists(temp.at(index)))
 								{
 									qp.projections.push_back(temp.at(index));
@@ -864,7 +775,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 								{
 									return false;
 								}
-								*/
+								
 							}
 							hasColma = false;
 						}
@@ -891,7 +802,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						/*
+						
 						if(tdPtr->columnExists(value))
 						{
 							qp.projections.push_back(value);
@@ -900,7 +811,7 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						*/
+						
 					}
 
 					if(!hasColma)
@@ -959,12 +870,12 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 					{
 						return false;
 					}
-					/*
+					
 					if(!tdPtr->columnExists(currentValue))
 					{
 						return false;
 					}
-					*/
+					
 
 					i++;
 					string currentValue1;
@@ -989,12 +900,12 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						/*
+						
 						if(!tdPtr->columnExists(currentValue2))
 						{
 							return false;
 						}
-						*/
+						
 					}
 					else
 					{
@@ -1043,12 +954,12 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 						{
 							return false;
 						}
-						/*
+						
 						if(!tdPtr->columnExists(currentValue))
 						{
 							return false;
 						}
-						*/
+						
 						isLeftStr = false;
 					}
 					i++;
@@ -1102,12 +1013,12 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 							{
 								return false;
 							}
-							/*
+							
 							if(!tdPtr->columnExists(currentValue2))
 							{
 								return false;
 							}
-							*/
+							
 							isRightStr = false;
 						}
 
@@ -1143,26 +1054,6 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 
 
 // *** other additional functions ***
-bool Select :: isAttributeOrRelationDotAttribute(string value)
-{
-	int pos = value.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-	if(pos != -1)	
-	{
-		// if it is R.A, no problem
-		if(value.at(pos) == '.')
-		{
-			// check that behind 
-			int secPos = value.find_last_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-			if(pos != secPos)
-			{
-				// there exist some other weird values
-				return false;
-			}
-		}
-	}
-	return true;
-}
-
 vector<string> Select::splitString(string toBeSplit, string delimiters)
 {
 	vector<string> tokens;

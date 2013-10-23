@@ -26,34 +26,46 @@ SELECT FROM INNER JOIN ON WHERE (when evaluating WHERE, grab those columns in SE
 
 class Select{
 	public:
-		Select :: Select();
-		Select :: Select(TableDictionary * tdPtr);
-		bool evaluateQuery(string query);	// TODO: return TableResult ptr
+		//Select :: Select();
+		Select :: Select(TableDictionary * tdPtr1, BTree *bTreePtr1);
+		TableResult * evaluateQuery(string query);	// TODO: return TableResult ptr
 	private:
 		map<string, TableResult> tableResultMap;
 		map<string, vector<MQLColumn>> columnMap;
 		map<string, vector<MQLCondition>> conditionMap;
-		vector<QueryPlan> queryPlans;
+		QueryPlan qp;
+		//vector<QueryPlan> queryPlans;	// only have 1 queryplan
 		string query;
 		TableResult finalResult;
 		TableDictionary * tdPtr;
-		//columnList
-		//joinList
-		//conditionList
+		BTree *bTreePtr;
+		bool isEmptyResult;
 
-
-		//void generateQueryPlan();
-		void removeRedundancy();
+		/*
+			four standard query plan's evaluation is done in the following 4 functions:
+		*/
 		void evaluateQueryPlan(int * queryPlanTypePtr);
-		void evaluateWhere(QueryPlan * qpPtr, int * queryPlanTypePtr);// either attr = "" OR attr = attr, call populate
-		void evaluateJoin(QueryPlan * qpPtr, int *queryPlanTypePtr);	// inner join bet. 2 tables, call merge
-		void evaluateSelect(QueryPlan * qpPtr);	// can select from diff tables
+		void evaluateWhere(int * queryPlanTypePtr);// either attr = "" OR attr = attr, call populate
+		void evaluateJoin(int *queryPlanTypePtr);	// inner join bet. 2 tables, call merge
+		void evaluateSelect();	// can select from diff tables
 
+		/*
+			-check semantics Select ...  & WHERE ...-> all attributes belongs to FROM, INNER JOIN tables.
+				if WHERE contains a = b, both must be from same table!
+				ON -> 1 attribute belongs to FROM table, another belongs to ON table
+			-remove redundancy (a = "abc" and "abc" = a)
+			-check for always false conditions and stop query evaluation
+		*/
 		bool parseSemantics();
+
+		/*
+			-check that syntax  & type is correct & Select ... -> all are attributes, FROM ... -> all are tables, INNER JOIN -> table, ON -> all attributes, WHERE -> all attributes
+			-check that type is correct e.g 
+		*/
 		bool parseSyntaxAndType(string query, vector<string> * tokensPtr, int * queryPlanType);
+		
 
 		// *** other additional functions ***
-		bool isAttributeOrRelationDotAttribute(string value);
 		vector<string> splitString(string toBeSplit, string delimiters);
 		void stringToUpper(string &s);
 };
