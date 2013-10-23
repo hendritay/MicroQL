@@ -36,7 +36,14 @@ public:
 	}
 
 	string getTableByColumnName(string columnName) {
-		return "";
+	if (!populatedTableList) 
+		populateTableList();
+
+		map<string, string>::iterator iter = columnNameList.find(columnName);
+		if (iter != columnNameList.end()) {
+			return iter->second;
+		} else 
+			return "";
 	}
 
 private:
@@ -45,7 +52,7 @@ private:
 	void populateTableNameList();
 	void populateTableList();
 	bool populatedTableList;
-	map<string, bool> columnNameList;
+	map<string, string> columnNameList;
 	DictionaryList dicitionaryList;
 	FileManager *myFile;
 	StorageManager * myStorage;	
