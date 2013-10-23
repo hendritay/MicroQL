@@ -322,48 +322,87 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 		rightTableName = tdPtr->getTableByColumnName(it->rightValue);
 
 		// load both sides to each tableResult
-		MQLColumn leftCol(it->leftValue, CT_VARCHAR);
-		MQLColumn rightCol(it->rightValue, CT_VARCHAR);
-
 		vector<MQLCondition> cons;
 		vector<MQLColumn> cols;
-		cols.push_back(leftCol);
+		int leftColNum = 0, rightColNum = 0;
 		TableResult tr1(tdPtr, bTreePtr), tr2(tdPtr, bTreePtr);
 		
-		tr1.loadResult(leftTableName, cols, cons);
-		cols.clear();
-		cols.push_back(rightCol);
-		tr2.loadResult(rightTableName, cols, cons);
+
 		
 		// get existing tableResults
 		map<string, TableResult > :: iterator iter = tableResultMap.find(leftTableName);
 		map<string, TableResult > :: iterator iter1 = tableResultMap.find(rightTableName);
 
-		TableResult * tr1Ptr, * tr2Ptr;
 		if(iter != tableResultMap.end())
-			tr1Ptr = &iter->second;
+		{
+			tr1 = iter->second;
+			TableDefinition t = tdPtr->getTableDefinition(leftTableName);
+			for(int i = 0; i < t.getNoOfColumn(); i++)
+			{
+				MQLColumn c = t.getColumnAt(i);
+				if(c.getColumnName().compare(it->leftValue) == 0)
+				{
+					leftColNum = i;
+					break;
+				}
+			}
+		}
 		else
-			tr1Ptr = &tr1;
+		{
+			MQLColumn leftCol(it->leftValue, CT_VARCHAR);
+			cols.push_back(leftCol);
+			tr1.loadResult(leftTableName, cols, cons);
+			
+		}
 		if(iter1 != tableResultMap.end())
-			tr2Ptr = &iter1->second;
+		{
+			tr2 = iter1->second;
+			TableDefinition t = tdPtr->getTableDefinition(rightTableName);
+			for(int i = 0; i < t.getNoOfColumn(); i++)
+			{
+				MQLColumn c = t.getColumnAt(i);
+				if(c.getColumnName().compare(it->rightValue) == 0)
+				{
+					rightColNum = i;
+					break;
+				}
+			}
+		}
 		else
-			tr2Ptr = &tr2;
+		{
+			cols.clear();
+			MQLColumn rightCol(it->rightValue, CT_VARCHAR);
+			cols.push_back(rightCol);
+			tr2.loadResult(rightTableName, cols, cons);
+		}
 		TableResult tr3(tdPtr, bTreePtr);
-		tr3.TableResult::merge(tr1Ptr, tr2Ptr, tdPtr, bTreePtr);
-		
+		tr3.TableResult::merge(&tr1, &tr2, tdPtr, bTreePtr);
 		// loop through and check for equal values
 		for(int i = 0; i < tr1.getNoOfRows(); i++)
 		{
-			string left = tr1.getValueAt(i, 0);
+			string left = tr1.getValueAt(i, leftColNum);
 			for(int in = 0; in <tr2.getNoOfRows(); in++)
 			{
-				if(left.compare(tr2.getValueAt(i,0)) == 0)
+				if(left.compare(tr2.getValueAt(in, rightColNum)) == 0)
+				{
+					tr3.addMergedRow(&tr1, i, &tr2, in);
+				}
+			}
+		}
+		/*
+		// loop through and check for equal values
+		for(int i = 0; i < tr1Ptr->getNoOfRows(); i++)
+		{
+			string left = tr1Ptr->getValueAt(i, leftColNum);
+			for(int in = 0; in <tr2Ptr->getNoOfRows(); in++)
+			{
+				if(left.compare(tr2Ptr->getValueAt(in, rightColNum)) == 0)
 				{
 					tr3.addMergedRow(tr1Ptr, i, tr2Ptr, in);
 				}
 			}
 		}
-
+		*/
 	}	// end of for
 
 	for(map<string, TableResult> :: iterator it = tableResultMap.begin(), end = tableResultMap.end(); it != end; ++it)
@@ -392,9 +431,17 @@ void Select :: evaluateSelect()
 		else
 		{
 			MQLColumn col(*it, CT_VARCHAR);
-			vector<MQLColumn> v;
-			v.push_back(col);
-			columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
+			map<string, vector<MQLColumn>> :: iterator iter = columnMap.find(tableName);
+			if(iter != columnMap.end())
+			{
+				iter->second.push_back(col);
+			}
+			else
+			{
+				vector<MQLColumn> v;
+				v.push_back(col);
+				columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
+			}
 		}
 	}	// end of for
 
@@ -494,6 +541,7 @@ bool Select :: parseSemantics()
 					if(ret.first->second.compare(sc.rightValue) == 0)
 					{
 						qp.conditions.erase(qp.conditions.begin() + i);
+						i--;
 					}
 					// same attribute but different string, will always be false
 					else
@@ -536,6 +584,7 @@ bool Select :: parseSemantics()
 					if(ret.first->second.compare(sc.leftValue) == 0)
 					{
 						qp.conditions.erase(qp.conditions.begin() + i);
+						i--;
 					}
 					// same attribute but different string, will always be false
 					else
@@ -554,6 +603,12 @@ bool Select :: parseSemantics()
 			if(leftTableName.compare(rightTableName) != 0)
 			{
 				return false;
+			}
+			// qty = qty
+			if(sc.leftValue.compare(sc.rightValue) == 0)
+			{
+				qp.conditions.erase(qp.conditions.begin() + i);
+				i--;
 			}
 
 		}
@@ -579,12 +634,14 @@ bool Select :: parseSemantics()
 				
 				// remove joins
 				qp.joins.erase(qp.joins.begin() + i);
+				i--;
 				// remove from selections
-				for(int i = 0; i < qp.selections.size(); i++)
+				for(int in = 0; in < qp.selections.size(); in++)
 				{
-					if(qp.selections.at(i).compare(leftTableName) == 0)
+					if(qp.selections.at(in).compare(leftTableName) == 0)
 					{
-						qp.selections.erase(qp.selections.begin() + i);
+						qp.selections.erase(qp.selections.begin() + in);
+						in--;
 						break;
 					}
 				}
@@ -654,21 +711,21 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 	bool isInnerJoin = false;
 	bool isAlrightToEnd = false;
 	bool hasJoin = false, hasWhere = false;
+
+	// remove ;
+	string a = tokensPtr->at(tokensPtr->size() - 1);
+	if(a.at(a.size()-1) == ';')
+	{
+		tokensPtr->at(tokensPtr->size() - 1) = a.substr(0, a.size()-1);
+	}
+	else
+	{
+		return false;
+	}
+
 	for(int i = 0; i < tokensPtr->size(); i++)
 	{
-		
 		string currentValue = tokensPtr->at(i);
-		if(i == tokensPtr->size() - 1)
-		{
-			if(currentValue.at(currentValue.size()-1) == ';')
-			{
-				currentValue = currentValue.substr(0, currentValue.size()-1);
-			}
-			else
-			{
-				return false;
-			}
-		}
 		string upperValue = currentValue;
 		stringToUpper(upperValue);
 		
@@ -825,7 +882,15 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 								}
 								
 							}
-							hasColma = false;
+							// , exist at the end of currentValue
+							if(currentValue.find_last_of(",") == currentValue.size()-1)
+							{
+								hasColma = true;
+							}
+							else
+							{
+								hasColma = false;
+							}
 						}
 						else
 						{

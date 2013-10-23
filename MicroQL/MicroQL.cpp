@@ -37,10 +37,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	string path = "c:\\study\\cs4221\\hellodb.txt";
 	string logPath = "c:\\study\\cs4221\\hellolog.txt";
 
-	if (remove(path.c_str()) == 0) 
-		cout << "default empty HelloDB.txt loaded" << endl;
+	//if (remove(path.c_str()) == 0) 
+	//	cout << "default empty HelloDB.txt loaded" << endl;
 	
-	FileManager::createAFile(path);	
+	//FileManager::createAFile(path);	
 	
 	Parser lrParser;
 	FileManager * fm = new FileManager(path);
@@ -104,6 +104,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			cout << "Record inserted.\n";
 			delete id;
 		}else if (CommonUtility::trim(command).find("SELECT") != string::npos){
+			Select select = Select(tdictionary, bt);
+			TableResult * tr = select.evaluateQuery(command);
+			tr->print();
+			continue;
+
 			// for kimli
 			// insertion
 			//command = "INSERT INTO EmployeeInformation (employeeid, name, age) VALUES ('1', 'KimmY', '20')";
