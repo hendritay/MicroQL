@@ -16,6 +16,14 @@ class TableResult {
 public:
 	
 	TableResult() {
+		this->tm  = NULL;
+	}
+
+	~TableResult() {
+	/*	if (this->tm != NULL)  {
+			delete this->tm ;
+			this->tm  = NULL;
+		}*/
 	}
 	TableResult(TableDictionary *td, BTree *bTree) {
 		tableDict = td;
@@ -106,6 +114,7 @@ public:
 		if (td.getNoColumn() != tm->getNoOfColumn()) {
 			cout <<"Column of Tuple Manager don't match with tb1 and tb2";
 			cout << "Didn't add";
+			return;
 		}
 		
 		tm->addTuple(td);
