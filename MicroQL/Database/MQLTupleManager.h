@@ -173,6 +173,9 @@ public :
 		
 
 	}
+	vector<MQLColumn> getColumnList() {
+		return columnList;
+	}
 protected:
 	MQLTuple &getTupleAt(int i) {
 		return *(tupleList.begin() + i);

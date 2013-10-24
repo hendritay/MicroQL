@@ -9,6 +9,8 @@
 #include <map>
 #include <string>
 #include <set>
+#include <sstream>
+
 //Select :: Select(){ }
 
 Select :: Select(TableDictionary * tdPtr1, BTree *bTreePtr1){tdPtr = tdPtr1; bTreePtr = bTreePtr1;}
@@ -35,7 +37,7 @@ TableResult * Select :: evaluateQuery(string query)
 		//throw "Invalid Syntax or Type used";
 
 	// 3. check semantics, remove redundancy
-	if(!parseSemantics())
+	if(!parseSemantics(queryPlanTypePtr))
 		if(!isEmptyResult)
 			return NULL;
 		else
@@ -209,6 +211,70 @@ void Select :: evaluateWhere(int * queryPlanTypePtr)
 			columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 		}
 	}
+	else
+		{
+			map<string, vector<MQLColumn> > :: iterator temp1;
+			for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end; ++it)
+			{
+				string leftTableName = tdPtr->getTableByColumnName(it->leftValue);
+				string rightTableName = tdPtr->getTableByColumnName(it->rightValue);	
+
+				temp1 = columnMap.find(leftTableName);
+				if(temp1 != columnMap.end())
+				{
+					MQLColumn col(it->leftValue, CT_VARCHAR);
+					bool found = false;
+					for(int i = 0; i < temp1->second.size(); i++)
+					{
+						if(temp1->second.at(i).getColumnName().compare(leftTableName) == 0)
+						{
+							found= true;
+							break;
+						}
+					}
+					if(!found)
+					{
+						temp1->second.push_back(col);
+					}
+					
+				}
+				else
+				{
+					MQLColumn col(it->leftValue, CT_VARCHAR);
+					vector<MQLColumn> v;
+					v.push_back(col);
+					columnMap.insert(pair<string, vector<MQLColumn>> (leftTableName, v));
+				}
+
+				temp1 = columnMap.find(rightTableName);
+				if(temp1 != columnMap.end())
+				{
+					MQLColumn col(it->rightValue, CT_VARCHAR);
+					bool found = false;
+					for(int i = 0; i < temp1->second.size(); i++)
+					{
+						if(temp1->second.at(i).getColumnName().compare(rightTableName) == 0)
+						{
+							found= true;
+							break;
+						}
+					}
+					if(!found)
+					{
+						temp1->second.push_back(col);
+					}
+					
+				}
+				else
+				{
+					MQLColumn col(it->rightValue, CT_VARCHAR);
+					vector<MQLColumn> v;
+					v.push_back(col);
+					columnMap.insert(pair<string, vector<MQLColumn>> (rightTableName, v));
+				}
+
+			}	// end of for
+		}
 
 	
 	if(*queryPlanTypePtr == SFW)
@@ -256,7 +322,7 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 	// tr3.container
 	// tr3.addRows(tr row, tr2.row(3))
 	// remove column
-
+	string tableResultMapKey;
 	if(*queryPlanTypePtr == SFJ)
 	{
 		for(vector<string> :: iterator temp = qp.projections.begin(), end = qp.projections.end(); temp != end; ++temp)
@@ -294,6 +360,70 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 				columnMap.insert(pair<string, vector<MQLColumn>> (tableName, v));
 			}
 		}
+		else
+		{
+			map<string, vector<MQLColumn> > :: iterator temp1;
+			for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end; ++it)
+			{
+				string leftTableName = tdPtr->getTableByColumnName(it->leftValue);
+				string rightTableName = tdPtr->getTableByColumnName(it->rightValue);	
+
+				temp1 = columnMap.find(leftTableName);
+				if(temp1 != columnMap.end())
+				{
+					MQLColumn col(it->leftValue, CT_VARCHAR);
+					bool found = false;
+					for(int i = 0; i < temp1->second.size(); i++)
+					{
+						if(temp1->second.at(i).getColumnName().compare(leftTableName) == 0)
+						{
+							found= true;
+							break;
+						}
+					}
+					if(!found)
+					{
+						temp1->second.push_back(col);
+					}
+					
+				}
+				else
+				{
+					MQLColumn col(it->leftValue, CT_VARCHAR);
+					vector<MQLColumn> v;
+					v.push_back(col);
+					columnMap.insert(pair<string, vector<MQLColumn>> (leftTableName, v));
+				}
+
+				temp1 = columnMap.find(rightTableName);
+				if(temp1 != columnMap.end())
+				{
+					MQLColumn col(it->rightValue, CT_VARCHAR);
+					bool found = false;
+					for(int i = 0; i < temp1->second.size(); i++)
+					{
+						if(temp1->second.at(i).getColumnName().compare(rightTableName) == 0)
+						{
+							found= true;
+							break;
+						}
+					}
+					if(!found)
+					{
+						temp1->second.push_back(col);
+					}
+					
+				}
+				else
+				{
+					MQLColumn col(it->rightValue, CT_VARCHAR);
+					vector<MQLColumn> v;
+					v.push_back(col);
+					columnMap.insert(pair<string, vector<MQLColumn>> (rightTableName, v));
+				}
+
+			}	// end of for
+		}
 		
 		 vector<MQLCondition> con;
 		// load data into TableResult
@@ -311,7 +441,8 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 		}	// end of for
 	}
 
-	vector<pair<string, TableResult> > pairVec;
+	vector<vector<string>> joinedTables;
+	int joinedTablesIndex = 0;
 	bool firstJoin = false;
 	// inner join bet. 2 tables, call merge
 	for(vector<SelectCondition> :: iterator it = qp.joins.begin(), end = qp.joins.end(); it != end; ++it)
@@ -325,21 +456,62 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 		vector<MQLCondition> cons;
 		vector<MQLColumn> cols;
 		int leftColNum = 0, rightColNum = 0;
+		int leftColJoinedTableIndex = -1, rightColJoinedTableIndex = -1;
 		TableResult tr1(tdPtr, bTreePtr), tr2(tdPtr, bTreePtr);
 		
-
-		
-		// get existing tableResults
-		map<string, TableResult > :: iterator iter = tableResultMap.find(leftTableName);
-		map<string, TableResult > :: iterator iter1 = tableResultMap.find(rightTableName);
-
-		if(iter != tableResultMap.end())
+		for(int i = 0; i < joinedTables.size(); i++)
 		{
-			tr1 = iter->second;
-			TableDefinition t = tdPtr->getTableDefinition(leftTableName);
-			for(int i = 0; i < t.getNoOfColumn(); i++)
+			vector<string> vec = joinedTables.at(i);
+			for(int in = 0; in < vec.size(); in++)
 			{
-				MQLColumn c = t.getColumnAt(i);
+				if(vec.at(in).compare(leftTableName) == 0)
+				{
+					leftColJoinedTableIndex = in;
+				}
+				if(vec.at(in).compare(rightTableName) == 0)
+				{
+					rightColJoinedTableIndex = in;
+				}
+			}
+		}
+		
+		if(leftColJoinedTableIndex == -1)
+		{
+			// get existing tableResults
+			map<string, TableResult > :: iterator iter = tableResultMap.find(leftTableName);
+			if(iter != tableResultMap.end())
+			{
+				tr1 = iter->second;
+				vector<MQLColumn> v = tr1.getColumnList();
+				for(int i = 0; i < v.size(); i++)
+				{
+					MQLColumn c = v.at(i);
+					if(c.getColumnName().compare(it->leftValue) == 0)
+					{
+						leftColNum = i;
+						break;
+					}
+				}
+			}
+			else
+			{
+				MQLColumn leftCol(it->leftValue, CT_VARCHAR);
+				cols.push_back(leftCol);
+				tr1.loadResult(leftTableName, cols, cons);
+			
+			}
+		}
+		// there are existing join on 1 of the tables
+		else
+		{
+			stringstream ss;
+			ss << leftColJoinedTableIndex;
+			map<string, TableResult> :: iterator itera = tableResultMap.find(ss.str());
+			tr1 = itera->second;
+			vector<MQLColumn> v = tr1.getColumnList();
+			for(int i = 0; i < v.size(); i++)
+			{
+				MQLColumn c = v.at(i);
 				if(c.getColumnName().compare(it->leftValue) == 0)
 				{
 					leftColNum = i;
@@ -347,20 +519,43 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 				}
 			}
 		}
+
+		if(rightColJoinedTableIndex == -1)
+		{
+			map<string, TableResult > :: iterator iter1 = tableResultMap.find(rightTableName);
+			if(iter1 != tableResultMap.end())
+			{
+				tr2 = iter1->second;
+				vector<MQLColumn> v = tr2.getColumnList();
+				for(int i = 0; i < v.size(); i++)
+				{
+					MQLColumn c = v.at(i);
+					if(c.getColumnName().compare(it->rightValue) == 0)
+					{
+						rightColNum = i;
+						break;
+					}
+				}
+			}
+			else
+			{
+				cols.clear();
+				MQLColumn rightCol(it->rightValue, CT_VARCHAR);
+				cols.push_back(rightCol);
+				tr2.loadResult(rightTableName, cols, cons);
+			}
+		}
+		// there are existing join on 1 of the tables
 		else
 		{
-			MQLColumn leftCol(it->leftValue, CT_VARCHAR);
-			cols.push_back(leftCol);
-			tr1.loadResult(leftTableName, cols, cons);
-			
-		}
-		if(iter1 != tableResultMap.end())
-		{
-			tr2 = iter1->second;
-			TableDefinition t = tdPtr->getTableDefinition(rightTableName);
-			for(int i = 0; i < t.getNoOfColumn(); i++)
+			stringstream ss;
+			ss << rightColJoinedTableIndex;
+			map<string, TableResult> :: iterator itera = tableResultMap.find(ss.str());
+			tr2 = itera->second;
+			vector<MQLColumn> v = tr2.getColumnList();
+			for(int i = 0; i < v.size(); i++)
 			{
-				MQLColumn c = t.getColumnAt(i);
+				MQLColumn c = v.at(i);
 				if(c.getColumnName().compare(it->rightValue) == 0)
 				{
 					rightColNum = i;
@@ -368,26 +563,57 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 				}
 			}
 		}
-		else
-		{
-			cols.clear();
-			MQLColumn rightCol(it->rightValue, CT_VARCHAR);
-			cols.push_back(rightCol);
-			tr2.loadResult(rightTableName, cols, cons);
-		}
 		TableResult tr3(tdPtr, bTreePtr);
-		tr3.TableResult::merge(&tr1, &tr2, tdPtr, bTreePtr);
+		tr3 = TableResult::merge(&tr1, &tr2, tdPtr, bTreePtr);
 		// loop through and check for equal values
 		for(int i = 0; i < tr1.getNoOfRows(); i++)
 		{
+			
 			string left = tr1.getValueAt(i, leftColNum);
 			for(int in = 0; in <tr2.getNoOfRows(); in++)
 			{
+				string right = tr2.getValueAt(in, rightColNum);
 				if(left.compare(tr2.getValueAt(in, rightColNum)) == 0)
 				{
 					tr3.addMergedRow(&tr1, i, &tr2, in);
 				}
 			}
+		}
+		stringstream ss;
+		if(leftColJoinedTableIndex  != -1 ||rightColJoinedTableIndex != -1)
+		{
+			map<string, TableResult> :: iterator iterat;
+			if(leftColJoinedTableIndex != -1)
+			{
+				ss<< leftColJoinedTableIndex << "";
+				iterat = tableResultMap.find(ss.str());
+				joinedTables.at(leftColJoinedTableIndex).push_back(rightTableName);
+			}
+			else
+			{
+				
+				ss<< rightColJoinedTableIndex << "";
+				iterat = tableResultMap.find(ss.str());
+				joinedTables.at(rightColJoinedTableIndex).push_back(leftTableName);
+				
+			}
+			iterat->second = tr3;
+			
+		}
+		else
+		{
+			ss<< joinedTablesIndex << "";
+			tableResultMap.insert(pair<string, TableResult>(ss.str(), tr3));
+			tableResultMapKey = ss.str();
+			joinedTablesIndex++;
+		}
+		
+		if(joinedTables.size() ==0)
+		{
+			vector<string> vec;
+			vec.push_back(leftTableName);
+			vec.push_back(rightTableName);
+			joinedTables.push_back(vec);
 		}
 		/*
 		// loop through and check for equal values
@@ -405,11 +631,8 @@ void Select :: evaluateJoin(int *queryPlanTypePtr)
 		*/
 	}	// end of for
 
-	for(map<string, TableResult> :: iterator it = tableResultMap.begin(), end = tableResultMap.end(); it != end; ++it)
-	{
-		finalResult = it->second;
-	}
-
+	map<string, TableResult> :: iterator iter = tableResultMap.find(tableResultMapKey);
+	finalResult = iter->second;
 }
 void Select :: evaluateSelect()
 {
@@ -473,7 +696,7 @@ void Select :: evaluateSelect()
 
 }
 
-bool Select :: parseSemantics()
+bool Select :: parseSemantics(int *queryPlanTypePtr)
 {
 	// check whether whether tree is disjoint 
 	// (right now the only situation is: there is some attribute in SELECT / WHERE that does not belong to any tables in FROM/INNER JOIN)
@@ -515,7 +738,7 @@ bool Select :: parseSemantics()
 
 		if(!sc.isLeftStr)
 		{
-			string leftTableName = tdPtr->getTableByColumnName(sc.leftValue);
+			leftTableName = tdPtr->getTableByColumnName(sc.leftValue);
 			for(int in = 0; in < qp.selections.size(); in++)
 			{
 				if(qp.selections.at(in).compare(leftTableName) == 0)
@@ -557,7 +780,7 @@ bool Select :: parseSemantics()
 		found = false;
 		if(!sc.isRightStr)
 		{
-			string rightTableName = tdPtr->getTableByColumnName(sc.rightValue);
+			rightTableName = tdPtr->getTableByColumnName(sc.rightValue);
 			for(int in = 0; in < qp.selections.size(); in++)
 			{
 				if(qp.selections.at(in).compare(rightTableName) == 0)
@@ -635,6 +858,13 @@ bool Select :: parseSemantics()
 				// remove joins
 				qp.joins.erase(qp.joins.begin() + i);
 				i--;
+				if(qp.joins.size() == 0)
+				{
+					if(*queryPlanTypePtr == SFJW)
+						*queryPlanTypePtr = SFW;
+					else if(*queryPlanTypePtr == SFJ)
+						*queryPlanTypePtr = SF;
+				}
 				// remove from selections
 				for(int in = 0; in < qp.selections.size(); in++)
 				{

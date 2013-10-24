@@ -120,6 +120,10 @@ public:
 		tm->addTuple(td);
 	}
 
+	vector<MQLColumn> getColumnList() {
+		return tm->getColumnList();
+	}
+
 	void print() {
 			cout << left;
 		
