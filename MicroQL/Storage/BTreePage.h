@@ -33,6 +33,7 @@ public :
 		newKeyRewrite = false;
 		mNextSibling = 0;
 		mParent = 0;
+		newKey = NULL;
 	}
 
 	void setParent(int PageNo) {
@@ -483,6 +484,12 @@ public :
 			return false;
 
 		return newKeyRewrite;
+	}
+
+	~BTreePage() {
+	/*	if (newKeyRewrite) 
+			if (newKey != NULL)
+				delete newKey;*/
 	}
 private:
 	static const int MAX_CHARS_IN_SAME_PAGE = 800;

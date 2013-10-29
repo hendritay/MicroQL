@@ -91,4 +91,5 @@ void InsertDefinition::execute(TableDictionary *td, BTree *bTree) {
 	bKey.setPayload(tuple1.serialize());
 	
 	bTree->insertRecord(tdef.getRecordPage(), bKey);	
+	delete tm;
 }

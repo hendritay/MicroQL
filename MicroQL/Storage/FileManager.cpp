@@ -84,11 +84,13 @@ string FileManager::readPage(int pageNo) {
 	ifstream myfile(path, ios::binary);
 	myfile.seekg(pageNo * PageSize); 
 	char * memblock;
-	memblock = new char [PageSize];
+	memblock = new char [PageSize];	
 	myfile.read(memblock, PageSize);
 	myfile.close();
 
-	return string(memblock, PageSize);
+	string newString(memblock, PageSize);
+	delete memblock;
+	return newString;
 }
 
 bool FileManager::fileExists(string path) {

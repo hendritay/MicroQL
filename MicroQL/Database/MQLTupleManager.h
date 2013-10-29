@@ -90,10 +90,10 @@ public :
 
 	}
 
-	static MQLTuple mergeTuple(MQLTupleManager *tm1, int index1, MQLTupleManager *tm2, int index2) {
+	static MQLTuple mergeTuple(MQLTupleManager &tm1, int index1, MQLTupleManager &tm2, int index2) {
 
-		MQLTuple t1 = tm1->getTupleAt(index1);
-		MQLTuple t2 = tm2->getTupleAt(index2);
+		MQLTuple t1 = tm1.getTupleAt(index1);
+		MQLTuple t2 = tm2.getTupleAt(index2);
 
 		MQLTuple tp(t1);
 
