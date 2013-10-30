@@ -1197,7 +1197,15 @@ bool Select :: parseSyntaxAndType(string query, vector<string> * tokensPtr, int 
 					}
 					else
 					{
-						qp.selections.push_back(value);
+
+						if(tdPtr->tableExists(value))
+						{
+							qp.selections.push_back(value);
+						}
+						else
+						{
+							return false;
+						}
 					}
 					if(!hasColma)
 					{
